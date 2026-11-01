@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2c6693">
+<title>Face Recognition Staff Attendance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/dist/face-api.min.js"></script>
+<style>
+/* Theme: ICF-SL App Shelf design (DHIS2 blue, green frame, phone view) */
+:root{--bg:#eef2f6;--line:#d5e0eb;--ink:#0b2540;--muted:#3a5675;--dhis:#2c6693;--dhis2:#1565c0;--dhis3:#0d47a1;--frame:#009E73;--appw:560px;
+  --navy:#1565c0;--gold:#009E73;--ok:#009E73;--late:#D55E00;--warn:#E69F00}
+*,*::before,*::after{box-sizing:border-box}
+html{background:#dfe6ee}
+body{margin:0;color:var(--ink);font:400 15px/1.5 Roboto,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+button{font:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--dhis2);outline-offset:2px}
+
+/* header */
+.appbar{position:sticky;top:0;z-index:20;max-width:var(--appw);margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px;background:var(--dhis);border-bottom:6px solid var(--frame)}
+.icflogo{width:118px;height:66px;border-radius:14px;background:#fff;object-fit:contain;padding:4px 8px;flex:0 0 auto}
+.ctx{flex:1;min-width:0;line-height:1.2}
+.ctx b{display:block;font-size:20px;color:#fff;font-weight:700}
+.ctx small{display:block;font-size:13px;color:#fff;font-weight:500;opacity:.92;margin-top:3px}
+.menubtn{width:46px;height:46px;border-radius:14px;border:2px solid #fff;background:rgba(255,255,255,.12);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex:0 0 auto;padding:0}
+.menubtn span{display:block;width:22px;height:3px;border-radius:2px;background:#fff;transition:transform .2s,opacity .2s}
+.menubtn.open span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+.menubtn.open span:nth-child(2){opacity:0}
+.menubtn.open span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
+.bnav{position:absolute;top:calc(100% + 6px);right:10px;width:min(290px,calc(100vw - 32px));display:none;flex-direction:column;gap:2px;padding:8px;background:#fff;border-radius:16px;box-shadow:0 12px 32px rgba(11,37,64,.25);outline:3px solid var(--frame);z-index:30}
+.bnav.open{display:flex}
+.bnav button{display:flex;align-items:center;gap:12px;padding:10px;border-radius:10px;font-size:15px;font-weight:700;text-align:left;color:var(--ink);background:none;border:0}
+.bnav button:hover{background:#f2f6fa}
+.bnav button.active{background:#e8f1fb}
+.bnav small{display:block;font-size:12px;font-weight:500;color:var(--muted)}
+.mn{width:32px;height:32px;border-radius:9px;background:var(--c);color:#fff;display:grid;place-items:center;font-weight:900;flex:0 0 auto}
+.mn svg{width:20px;height:20px}
+
+/* frame and footer */
+.frame{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:min(var(--appw),100%);border-left:6px solid var(--frame);border-right:6px solid var(--frame);pointer-events:none;z-index:15}
+.foot{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(var(--appw),100%);z-index:20;background:var(--dhis);color:#fff;text-align:center;padding:9px 12px calc(9px + env(safe-area-inset-bottom,0px));border-top:6px solid var(--frame);display:flex;flex-direction:column;gap:2px}
+.foot .f1{font-weight:700;font-size:clamp(11px,3.1vw,14px)}
+.foot .f2{font-size:clamp(10.5px,3vw,12.5px);opacity:.92}
+main{max-width:var(--appw);min-height:100vh;margin:0 auto;background:var(--bg);padding:14px 16px 120px}
+
+/* cards in the shelf section style */
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:14px 14px 16px;margin-top:14px}
+.card h2{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:17px;font-weight:900;color:var(--ink);line-height:1.2}
+.card h2::before{content:"";width:10px;height:22px;border-radius:5px;background:var(--dhis2);flex:0 0 auto}
+.muted{color:var(--muted);font-size:14px}
+.center{text-align:center}
+.center h2{justify-content:center}
+
+/* camera */
+.camwrap{position:relative;width:100%;margin:0 auto;aspect-ratio:4/3;background:#0b2540;border-radius:16px;overflow:hidden;border:3px solid var(--frame)}
+.camwrap video,.camwrap canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.facetip{position:absolute;left:50%;top:10px;transform:translateX(-50%);width:max-content;max-width:92%;padding:7px 14px;border-radius:20px;font-weight:700;font-size:13.5px;text-align:center;z-index:3}
+.facetip.warn{background:var(--warn);color:#0b2540}
+.facetip.good{background:var(--frame);color:#fff}
+.camactions{position:absolute;left:0;right:0;bottom:12px;display:flex;justify-content:center;z-index:3}
+.camactions .btn{box-shadow:0 4px 14px rgba(0,0,0,.45);padding:11px 20px;font-size:15px}
+.camstatus{text-align:center;margin:10px 0 0;font-weight:700;color:var(--dhis3);min-height:22px}
+.tips{margin:10px 0 0;padding-left:20px;font-size:13.5px;color:var(--muted);line-height:1.45}
+.tips li{margin:3px 0}
+
+/* buttons and forms */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 18px;border:0;border-radius:12px;background:var(--dhis2);color:#fff;font-weight:700;font-size:15px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.gold{background:var(--frame);color:#fff}
+.btn.light{background:#e8f1fb;color:var(--dhis3)}
+.btn.danger{background:var(--late)}
+.btn.small{padding:7px 12px;font-size:13px;border-radius:10px}
+.btn.big{font-size:16px;padding:13px 22px}
+.btn svg{width:18px;height:18px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+label{display:block;font-weight:700;font-size:14px;margin:10px 0 4px}
+input,select{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px}
+input:focus,select:focus{outline:0;border-color:var(--dhis2);box-shadow:0 0 0 3px rgba(21,101,192,.15)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}
+.onecol>div{margin-bottom:2px}
+.err{color:var(--late);font-size:13px;margin-top:4px}
+.notice{padding:10px 12px;border-radius:12px;margin-top:10px;font-weight:700;font-size:14px}
+.notice.ok{background:#e3f5ee;color:#00694d}
+.notice.bad{background:#fcebdf;color:#a54400}
+.notice.info{background:#e8f1fb;color:var(--dhis3)}
+.shots3{display:grid;grid-template-columns:minmax(0,160px);justify-content:center;gap:10px;margin-top:10px}
+.shot{text-align:center;font-size:12.5px;font-weight:700;color:var(--muted)}
+.shot .ph{aspect-ratio:1/1;border-radius:14px;border:2px dashed var(--line);background:#f2f6fa;display:grid;place-items:center;overflow:hidden;margin-bottom:5px;color:#9fb3c8;font-size:24px;font-weight:900}
+.shot .ph img{width:100%;height:100%;object-fit:cover}
+.shot.done .ph{border:3px solid var(--frame)}
+.shot.next .ph{border:3px dashed var(--warn)}
+.shot.done{color:#00694d}
+
+/* tables and stats */
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+th{background:#f2f6fa;color:var(--dhis3);font-weight:700}
+td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
+.tag{display:inline-block;padding:3px 9px;border-radius:20px;font-size:12px;font-weight:700}
+.tag.ok{background:#e3f5ee;color:#00694d}
+.tag.late{background:#fcebdf;color:#a54400}
+.tag.hid{background:#eceff2;color:#5b6b7a}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin:6px 0 12px}
+.stat{background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:10px;text-align:center;font-size:13px;color:var(--muted);font-weight:700}
+.stat b{display:block;font-size:24px;font-weight:900;color:var(--dhis3)}
+.tablewrap{overflow-x:auto}
+.hidden{display:none !important}
+.subnav{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.subnav button{padding:8px 14px;border:1.5px solid var(--dhis2);border-radius:20px;background:#fff;color:var(--dhis2);font-weight:700;font-size:13.5px}
+.subnav button.active{background:var(--dhis2);color:#fff}
+.syncline{font-size:12px;color:var(--muted);text-align:center;margin-top:16px}
+
+/* signed in person strip */
+.who{display:flex;align-items:center;gap:14px;text-align:left}
+.wphoto{width:74px;height:74px;border-radius:50%;object-fit:cover;border:3px solid var(--frame);background:#f2f6fa;flex:0 0 auto}
+.wtext{min-width:0}
+.wtext b{display:block;font-size:18px;font-weight:900;line-height:1.2}
+.wtext small{display:block;font-size:13px;color:var(--muted);font-weight:500;margin-top:2px}
+#whoCard{padding-top:12px;padding-bottom:10px}
+
+/* countdown between photos, and the Register highlight */
+.countdown{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:4;pointer-events:none;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.6)}
+.countdown b{font-size:84px;font-weight:900;line-height:1}
+.countdown span{margin-top:6px;font-size:18px;font-weight:700;background:rgba(11,37,64,.55);padding:4px 12px;border-radius:14px}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,158,115,.7)}100%{box-shadow:0 0 0 18px rgba(0,158,115,0)}}
+.btn.pulse{animation:pulse 1s ease-out 3}
+
+/* telephone with country code */
+.phone{display:flex;gap:8px}
+.ccbtn{display:flex;align-items:center;gap:7px;flex:0 0 auto;padding:0 10px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font-weight:700;font-size:15px}
+.ccbtn img,.ccrow img{width:26px;height:18px;object-fit:cover;border-radius:3px;box-shadow:0 0 0 1px rgba(11,37,64,.15)}
+.phone input{flex:1;min-width:0}
+.ccpanel{margin-top:6px;border:1.5px solid var(--line);border-radius:12px;background:#fff;padding:8px;box-shadow:0 8px 22px rgba(11,37,64,.15)}
+.cclist{max-height:240px;overflow:auto;margin-top:6px}
+.ccrow{display:flex;align-items:center;gap:10px;width:100%;padding:8px;border:0;background:none;border-radius:8px;text-align:left;font-size:14.5px;color:var(--ink)}
+.ccrow:hover,.ccrow.on{background:#e8f1fb}
+.ccrow b{margin-left:auto;color:var(--muted);font-weight:700}
+
+/* widget cards, 2 columns */
+.widgets{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.widget{display:flex;flex-direction:column;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:18px;padding:18px 10px 16px;text-align:center;color:var(--ink);box-shadow:0 3px 8px rgba(11,37,64,.08);transition:transform .12s}
+.widget:hover,.widget:active{transform:scale(.97)}
+.wtile{width:min(76px,20vw);aspect-ratio:1/1;border-radius:22%;display:grid;place-items:center;background:#fff;border:3px solid var(--c);color:var(--c);box-shadow:0 3px 8px rgba(11,37,64,.18)}
+.wtile svg{width:56%;height:56%}
+.widget b{font-size:17px;font-weight:900;margin-top:4px}
+.widget small{font-size:12.5px;color:var(--muted);font-weight:700}
+.widget em{font-style:normal;font-size:12px;font-weight:700;color:var(--ok);min-height:0}
+.widget.off{opacity:.45;cursor:not-allowed;transform:none}
+#signinIntro .btn{margin-top:12px}
+
+/* popups */
+.modal{position:fixed;inset:0;background:rgba(11,37,64,.6);display:flex;align-items:center;justify-content:center;z-index:50;padding:14px}
+.modal .box{background:#fff;border-radius:18px;outline:3px solid var(--frame);width:100%;max-width:420px;padding:20px;text-align:center;max-height:92vh;overflow:auto;box-shadow:0 12px 32px rgba(11,37,64,.3)}
+.modal .photo{width:130px;height:130px;border-radius:50%;object-fit:cover;border:4px solid var(--frame)}
+.modal h3{margin:10px 0 2px;font-size:21px;font-weight:900;color:var(--ink)}
+.modal .detail{text-align:left;margin:12px 0;font-size:15px}
+.modal .detail div{padding:6px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+.modal .detail span{color:var(--muted)}
+.modal .status{font-size:22px;font-weight:900;margin:6px 0}
+
+@media (max-width:480px){
+  .grid2{grid-template-columns:1fr}
+  .camactions{bottom:8px}.camactions .btn{padding:8px 14px;font-size:14px}
+  .facetip{top:6px;font-size:12.5px;padding:6px 12px}
+}
+@media (max-width:380px){.icflogo{width:96px;height:56px}.ctx b{font-size:17px}}
+</style>
+</head>
+<body>
+<header class="appbar">
+  <img class="icflogo" alt="Informatics Consultancy Firm (ICF-SL) logo" src="data:image/webp;base64,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">
+  <div class="ctx"><b>Face Recognition Staff Attendance</b><small id="clock"></small></div>
+  <button class="menubtn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><span></span><span></span><span></span></button>
+  <nav class="bnav" id="nav" aria-label="Sections">
+    <button data-tab="home"><span class="mn" style="--c:#2c6693"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></span><span>Home<small>Sign up or sign in</small></span></button>
+    <button data-tab="register"><span class="mn" style="--c:#7b3fa0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3-6 7-6s7 2 7 6M19 8v6M16 11h6"/></svg></span><span>Sign up<small>Register your face</small></span></button>
+    <button data-tab="signin"><span class="mn" style="--c:#0b5f99"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="11" r="3"/><path d="M8 17c1-2 2.5-3 4-3s3 1 4 3"/></svg></span><span>Sign in<small>Attendance and meetings</small></span></button>
+    <button data-tab="admin"><span class="mn" style="--c:#D55E00"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg></span><span>Admin<small>Meetings, records and summary</small></span></button>
+  </nav>
+</header>
+
+<main>
+  <!-- Home -->
+  <section id="tab-home">
+    <div class="card center">
+      <h2>Welcome</h2>
+      <p class="muted" style="margin:0">New here? Sign up once with your face. Already registered? Sign in with your face.</p>
+    </div>
+    <div class="widgets">
+      <button class="widget" id="wSignUp" style="--c:#7b3fa0"><span class="wtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3-6 7-6s7 2 7 6M19 8v6M16 11h6"/></svg></span><b>Sign up</b><small>Register your face</small></button>
+      <button class="widget" id="wSignIn" style="--c:#0b5f99"><span class="wtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="11" r="3"/><path d="M8 17c1-2 2.5-3 4-3s3 1 4 3"/></svg></span><b>Sign in</b><small>Scan your face</small></button>
+    </div>
+  </section>
+
+  <!-- Sign in -->
+  <section id="tab-signin" class="hidden">
+    <div class="card center" id="signinIntro">
+      <h2>Sign in</h2>
+      <p class="muted" style="margin:0">Put your face in the circle and press Sign in on the camera.</p>
+      <button class="btn gold big scanBtn" id="btnSignIn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="11" r="3"/><path d="M8 17c1-2 2.5-3 4-3s3 1 4 3"/></svg>Sign in</button>
+    </div>
+    <div id="signedPanel" class="hidden">
+      <div class="card center" id="whoCard"></div>
+      <div class="widgets">
+        <button class="widget" id="wAttendance" style="--c:#0b5f99"><span class="wtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span><b>Attendance</b><small>NMCP Staff only</small><em id="attNote"></em></button>
+        <button class="widget" id="wMeeting" style="--c:#009E73"><span class="wtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span><b>Meeting</b><small>NMCP and Partners</small><em></em></button>
+      </div>
+      <p class="muted center" style="font-size:13px">Arrival after <b id="lateLbl"></b> is recorded as Late. You are signed out automatically after one minute.</p>
+      <div class="center"><button class="btn light" id="btnSignOut">Sign out</button></div>
+    </div>
+  </section>
+
+  <!-- Register -->
+  <section id="tab-register" class="hidden">
+    <div class="card">
+      <h2>Sign up</h2>
+      <div class="onecol">
+        <div><label>Full name *</label><input id="rName" autocomplete="off"><div class="err" id="eName"></div></div>
+        <div><label>Organisation *</label><input id="rOrg" autocomplete="off"><div class="err" id="eOrg"></div></div>
+        <div><label>Designation *</label><input id="rDesig" autocomplete="off"><div class="err" id="eDesig"></div></div>
+        <div><label>Unit / Department *</label><input id="rUnit" autocomplete="off"><div class="err" id="eUnit"></div></div>
+        <div><label>Telephone *</label>
+          <div class="phone">
+            <button type="button" class="ccbtn" id="ccBtn" aria-label="Country code"><img id="ccFlag" alt=""><span id="ccCode">+232</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>
+            <input id="rPhone" inputmode="numeric" maxlength="14" autocomplete="off" aria-label="Telephone number">
+          </div>
+          <div class="ccpanel hidden" id="ccPanel"><input id="ccSearch" placeholder="Search country or code" autocomplete="off"><div class="cclist" id="ccList"></div></div>
+          <div class="err" id="ePhone"></div></div>
+        <div><label>Email</label><input id="rEmail" type="email" autocomplete="off"><div class="err" id="eEmail"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- shared camera -->
+  <div class="card" id="camCard">
+    <div class="camwrap"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas><div class="facetip warn" id="faceTip">Place your face inside the circle</div><div class="countdown hidden" id="countdown"></div><div class="camactions" id="camActions"><button class="btn gold hidden" id="btnCamRetry" type="button">Try camera again</button></div></div>
+    <div class="camstatus" id="camStatus">Loading face recognition…</div>
+    <ul class="tips">
+      <li>Stand facing a window or a light so it shines on your face. Do not stand with the sun or a bright window behind you.</li>
+      <li>Avoid strong direct sunlight on the face; shade or indoor light is best.</li>
+      <li>Remove sunglasses, caps and face masks. Ordinary glasses are fine.</li>
+      <li>Hold the phone or stand at eye level, about an arm's length away, with your whole face inside the circle.</li>
+      <li>Look straight at the camera and keep still until the circle turns green.</li>
+    </ul>
+  </div>
+
+  <!-- Sign up: photos and Register, below the camera -->
+  <div class="card hidden" id="regFinish">
+    <h2>Face photo</h2>
+    <p class="muted" style="margin:0 0 4px">Look straight at the camera and press Capture photo. The app counts down 3, 2, 1, then takes the photo.</p>
+    <div class="shots3" id="shots"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn gold big" id="btnSave" style="flex:1">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg>
+        Register</button>
+      <button class="btn light" id="btnClear">Clear</button>
+    </div>
+    <div id="regMsg"></div>
+    <button class="btn gold scanBtn" id="btnCapture" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+      <span id="capLbl">Capture photo</span></button>
+  </div>
+
+  <!-- Admin -->
+  <section id="tab-admin" class="hidden">
+    <div class="card">
+      <div class="subnav" id="subnav">
+        <button data-sub="meetings" class="active">Meetings</button>
+        <button data-sub="arrivals">Arrivals</button>
+        <button data-sub="matt">Meeting attendance</button>
+        <button data-sub="staff">Staff</button>
+        <button data-sub="summary">Summary</button>
+      </div>
+
+      <div id="sub-meetings">
+        <h2>Meetings</h2>
+        <p class="muted">Staff only see meetings marked Shown. Hide a meeting once it is over so nobody selects it by mistake.</p>
+        <div class="row"><input id="mName" placeholder="Meeting name, e.g. Monday Management Meeting" style="flex:1;min-width:220px">
+          <button class="btn" id="btnAddMeeting">Add meeting</button></div>
+        <div class="err" id="eMeeting"></div>
+        <div class="tablewrap" style="margin-top:12px"><table><thead><tr><th>Meeting</th><th>Created</th><th>Status</th><th></th></tr></thead><tbody id="tbMeetings"></tbody></table></div>
+      </div>
+
+      <div id="sub-arrivals" class="hidden">
+        <h2>Arrivals</h2>
+        <div class="row"><input type="date" id="aDate" style="max-width:200px"><button class="btn light small" id="btnExportA">Export CSV</button></div>
+        <div class="stats" id="aStats"></div>
+        <div class="tablewrap"><table><thead><tr><th></th><th>Time</th><th>Name</th><th>Designation</th><th>Unit</th><th>Status</th></tr></thead><tbody id="tbArrivals"></tbody></table></div>
+      </div>
+
+      <div id="sub-matt" class="hidden">
+        <h2>Meeting attendance</h2>
+        <div class="row"><input type="date" id="mDate" style="max-width:200px"><select id="mFilter" style="max-width:300px"></select><button class="btn light small" id="btnExportM">Export CSV</button></div>
+        <div class="stats" id="mStats"></div>
+        <div class="tablewrap"><table><thead><tr><th></th><th>Time</th><th>Name</th><th>Organisation</th><th>Designation</th><th>Meeting</th></tr></thead><tbody id="tbMatt"></tbody></table></div>
+      </div>
+
+      <div id="sub-summary" class="hidden">
+        <h2>Summary</h2>
+        <div class="row"><label style="margin:0">From</label><input type="date" id="sFrom" style="max-width:180px"><label style="margin:0">To</label><input type="date" id="sTo" style="max-width:180px"></div>
+        <h2 style="margin-top:18px">Office attendance</h2>
+        <div class="stats" id="sOfficeStats"></div>
+        <div class="row" style="margin-bottom:8px"><button class="btn light small" id="btnExportSO">Export CSV</button></div>
+        <div class="tablewrap"><table><thead><tr><th></th><th>Name</th><th>Unit</th><th>Days present</th><th>On time</th><th>Late</th><th>On time %</th><th>Meetings attended</th></tr></thead><tbody id="tbSumOffice"></tbody></table></div>
+        <h2 style="margin-top:22px">Meeting attendance</h2>
+        <div class="stats" id="sMeetStats"></div>
+        <div class="row" style="margin-bottom:8px"><button class="btn light small" id="btnExportSM">Export CSV</button></div>
+        <div class="tablewrap"><table><thead><tr><th>Meeting</th><th>Date</th><th>Attended</th><th>Who attended</th></tr></thead><tbody id="tbSumMeet"></tbody></table></div>
+      </div>
+
+      <div id="sub-staff" class="hidden">
+        <h2>Registered staff</h2>
+        <div class="tablewrap"><table><thead><tr><th></th><th>Name</th><th>Organisation</th><th>Designation</th><th>Unit</th><th>Telephone</th><th></th></tr></thead><tbody id="tbStaff"></tbody></table></div>
+      </div>
+      <div class="row" style="margin-top:14px"><button class="btn light small" id="btnRefresh">Refresh from server</button><button class="btn light small" id="btnLogout">Lock admin</button></div>
+    </div>
+  </section>
+  <div class="syncline" id="syncLine"></div>
+</main>
+
+<footer class="foot"><span class="f1">Face Recognition Staff Attendance <span style="margin:0 .45em">|</span> NMCP and Partners</span><span class="f2">Designed by Informatics Consultancy Firm – Sierra Leone (ICF-SL)</span></footer>
+<div class="frame" aria-hidden="true"></div>
+
+<!-- modals -->
+<div class="modal hidden" id="modal"><div class="box" id="modalBox"></div></div>
+
+<script>
+/* ================= settings ================= */
+const SCRIPT_URL = '';                 // paste the Apps Script web app /exec URL here
+const ADMIN_PASSWORD = 'admin123';     // opens the Admin tab
+const LATE_AFTER = '09:00';            // arrival after this time is Late
+const MATCH_SCORE = 85;                // minimum match score (%) before the Register button is shown
+const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model';
+const STORE_KEY = 'nmcpFaceAttendance_v1';
+
+/* ================= storage ================= */
+const blank = () => ({ staff: [], arrivals: [], meetAtt: [], meetings: [], deleted: [], queue: [], lastSync: '' });
+let DB = blank();
+try { DB = Object.assign(blank(), JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); } catch (e) {}
+function persist() {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(DB)); }
+  catch (e) { toastNotice('Device storage is full. Records are still sent to the server.', 'bad'); }
+}
+
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const today = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const nowTime = (d = new Date()) => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function isLate(time) {
+  const [lh, lm] = LATE_AFTER.split(':').map(Number);
+  const [h, m, s] = time.split(':').map(Number);
+  return h * 3600 + m * 60 + (s || 0) > lh * 3600 + lm * 60;
+}
+function fmtTime12(t) { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}:${pad(m)} ${h < 12 ? 'AM' : 'PM'}`; }
+$('lateLbl').textContent = fmtTime12(LATE_AFTER + ':00');
+const tickClock = () => { const d = new Date(); $('clock').textContent = d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + '  •  ' + nowTime(d); };
+tickClock(); setInterval(tickClock, 1000);
+
+/* ================= server sync ================= */
+async function post(body) {
+  if (!SCRIPT_URL) return { ok: false, offline: true };
+  const r = await fetch(SCRIPT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) });
+  return r.json();
+}
+async function send(body) {
+  try { const res = await post(body); if (res && res.ok) return res; if (res && res.error) return res; throw new Error('no response'); }
+  catch (e) { DB.queue.push(body); persist(); updateSyncLine(); return { ok: false, queued: true }; }
+}
+async function flushQueue() {
+  if (!SCRIPT_URL || !DB.queue.length || !navigator.onLine) return;
+  const pending = DB.queue.slice(); DB.queue = [];
+  for (let i = 0; i < pending.length; i++) {
+    try { const res = await post(pending[i]); if (!(res && (res.ok || res.error))) throw 0; }
+    catch (e) { DB.queue = pending.slice(i).concat(DB.queue); break; }
+  }
+  persist(); updateSyncLine();
+}
+function mergeBy(localArr, remoteArr, key) {
+  const map = new Map(localArr.map(x => [x[key], x]));
+  remoteArr.forEach(r => {
+    if (DB.deleted.includes(r[key])) return;
+    const l = map.get(r[key]);
+    if (!l || String(r.updatedAt || '') > String(l.updatedAt || '')) map.set(r[key], Object.assign({}, l, r));
+  });
+  return [...map.values()];
+}
+async function pullServer(date) {
+  if (!SCRIPT_URL) return false;
+  try {
+    const b = await (await fetch(SCRIPT_URL + '?action=bootstrap')).json();
+    if (b.ok) {
+      DB.staff = mergeBy(DB.staff, b.staff || [], 'staffId');
+      // meetings are managed on the server, so its list wins (except edits still waiting in the queue)
+      const waiting = new Set(DB.queue.filter(q => q.action === 'saveMeeting').map(q => q.meeting.id));
+      DB.meetings = (b.meetings || []).filter(m => !DB.deleted.includes(m.id)).concat(DB.meetings.filter(m => waiting.has(m.id) && !(b.meetings || []).some(x => x.id === m.id)));
+    }
+    const r = await (await fetch(SCRIPT_URL + '?action=records' + (date ? '&date=' + date : ''))).json();
+    if (r.ok) {
+      DB.arrivals = mergeBy(DB.arrivals, r.arrivals || [], 'id');
+      DB.meetAtt = mergeBy(DB.meetAtt, r.meetingAttendance || [], 'id');
+    }
+    DB.lastSync = new Date().toLocaleString(); persist(); rebuildMatcher(); updateSyncLine();
+    return true;
+  } catch (e) { updateSyncLine('Server not reachable, working from this device.'); return false; }
+}
+function updateSyncLine(extra) {
+  const parts = [];
+  if (!SCRIPT_URL) parts.push('Server link not set: records are kept on this device only.');
+  else parts.push(DB.lastSync ? 'Last synced ' + DB.lastSync : 'Not yet synced');
+  if (DB.queue.length) parts.push(DB.queue.length + ' record(s) waiting to send');
+  if (extra) parts.push(extra);
+  $('syncLine').textContent = parts.join('  •  ');
+}
+window.addEventListener('online', flushQueue);
+setInterval(flushQueue, 60000);
+
+/* ================= face engine ================= */
+const video = $('video'), overlay = $('overlay');
+let modelsReady = false, camReady = false, busy = false, matcher = [];
+const detOpts = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 });
+
+async function loadModels() {
+  if (typeof faceapi === 'undefined') { modelError = 'Face recognition could not load. Check the internet connection, then reload the page.'; setCam(modelError, true); return; }
+  setCam('Loading face recognition (first time can take a minute)…');
+  try {
+    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+    await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+    modelsReady = true; modelError = ''; refreshButtons(); showReady();
+  } catch (e) { modelError = 'Face recognition could not load. Check the internet connection, then reload the page.'; setCam(modelError, true); }
+}
+let camError = '', modelError = '', camStarting = false, loopOn = false;
+async function startCamera() {
+  if (camReady || camStarting) return;
+  if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    camError = 'The camera only works when the page is opened over https (for example from GitHub Pages) in Chrome, Edge or Safari.';
+    setCam(camError, true); showRetry(true); return;
+  }
+  camStarting = true; setCam('Starting camera…');
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+    video.srcObject = stream; await video.play(); camReady = true; camError = ''; refreshButtons(); showRetry(false);
+    showReady();
+    if (!loopOn) { loopOn = true; trackLoop(); }
+  } catch (e) {
+    camError = e && e.name === 'NotAllowedError' ? 'Camera blocked. Allow the camera for this page (the camera or padlock icon beside the web address), then press Try camera again.'
+      : e && e.name === 'NotFoundError' ? 'No camera was found on this device.'
+      : e && e.name === 'NotReadableError' ? 'The camera is being used by another app. Close that app, then press Try camera again.'
+      : 'The camera could not start. Press Try camera again.';
+    setCam(camError, true); showRetry(true);
+  } finally { camStarting = false; }
+}
+function showRetry(on) { $('btnCamRetry').classList.toggle('hidden', !on); $('faceTip').classList.toggle('hidden', on); document.querySelectorAll('#camActions .scanBtn').forEach(b => b.style.display = on ? 'none' : ''); }
+function showReady() {
+  if (camError) { setCam(camError, true); return; }
+  if (modelError) { setCam(modelError, true); return; }
+  if (!camReady) { setCam('Starting camera…'); return; }
+  if (!modelsReady) { setCam('Loading face recognition (first time can take a minute)…'); return; }
+  if (currentTab === 'register') capturePrompt(); else setCam('Ready. Look at the camera.');
+}
+function setCam(msg, bad) { $('camStatus').textContent = msg; $('camStatus').style.color = bad ? 'var(--late)' : 'var(--navy)'; }
+$('btnCamRetry') && ($('btnCamRetry').onclick = () => { camError = ''; startCamera(); });
+function refreshButtons() { document.querySelectorAll('.scanBtn').forEach(b => b.disabled = !(modelsReady && camReady) || busy); }
+
+// circle guide: everything outside the circle is dimmed, and live tips help the person position their face
+let lastQuality = { ok: false, tip: 'Place your face inside the circle' };
+const probe = document.createElement('canvas'); probe.width = 160; probe.height = 120;
+function guideCircle(w, h) { return { cx: w / 2, cy: h * 0.45, r: Math.min(w, h) * 0.30 }; }
+function insideCircle(box, w, h) {
+  const c = guideCircle(w, h), fx = box.x + box.width / 2, fy = box.y + box.height / 2;
+  return Math.hypot(fx - c.cx, fy - c.cy) <= c.r * 0.45;
+}
+function lightLevels(box) {
+  const g = probe.getContext('2d', { willReadFrequently: true });
+  g.drawImage(video, 0, 0, 160, 120);
+  const data = g.getImageData(0, 0, 160, 120).data, sx = 160 / video.videoWidth, sy = 120 / video.videoHeight;
+  const x0 = Math.max(0, Math.floor(box.x * sx)), x1 = Math.min(160, Math.ceil((box.x + box.width) * sx));
+  const y0 = Math.max(0, Math.floor(box.y * sy)), y1 = Math.min(120, Math.ceil((box.y + box.height) * sy));
+  let all = 0, face = 0, nf = 0;
+  for (let y = 0; y < 120; y++) for (let x = 0; x < 160; x++) {
+    const i = (y * 160 + x) * 4, l = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+    all += l; if (x >= x0 && x < x1 && y >= y0 && y < y1) { face += l; nf++; }
+  }
+  return { frame: all / (160 * 120), face: nf ? face / nf : 0 };
+}
+function judge(det) {
+  const w = video.videoWidth, h = video.videoHeight, c = guideCircle(w, h);
+  if (!det) return { ok: false, tip: 'Place your face inside the circle' };
+  const b = det.box, fx = b.x + b.width / 2, fy = b.y + b.height / 2;
+  if (Math.hypot(fx - c.cx, fy - c.cy) > c.r * 0.45) return { ok: false, tip: 'Move your face to the middle of the circle' };
+  const size = b.width / (2 * c.r);
+  if (size < 0.42) return { ok: false, tip: 'Come a little closer to the camera' };
+  if (size > 1.0) return { ok: false, tip: 'Move back a little' };
+  const L = lightLevels(b);
+  if (L.face < 65) return { ok: false, tip: 'Too dark. Face a window or a light so it shines on your face' };
+  if (L.face > 215) return { ok: false, tip: 'Too bright. Move out of direct sunlight' };
+  if (L.frame - L.face > 40) return { ok: false, tip: 'Light is behind you. Turn round so the light falls on your face' };
+  return { ok: true, tip: 'Good. Hold still' };
+}
+function drawGuide(q) {
+  const ctx = overlay.getContext('2d'), w = overlay.width, h = overlay.height, c = guideCircle(w, h);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = 'rgba(11,37,64,.6)'; ctx.fillRect(0, 0, w, h);
+  ctx.globalCompositeOperation = 'destination-out';
+  ctx.beginPath(); ctx.arc(c.cx, c.cy, c.r, 0, Math.PI * 2); ctx.fill();
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.strokeStyle = q.ok ? '#009E73' : '#E69F00'; ctx.lineWidth = Math.max(4, w / 110);
+  ctx.setLineDash(q.ok ? [] : [18, 12]);
+  ctx.beginPath(); ctx.arc(c.cx, c.cy, c.r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  const tip = $('faceTip'); tip.textContent = q.tip; tip.className = 'facetip ' + (q.ok ? 'good' : 'warn');
+}
+async function trackLoop() {
+  while (true) {
+    await new Promise(r => setTimeout(r, 220));
+    if (!camReady || $('camCard').classList.contains('hidden') || busy || document.hidden) continue;
+    if (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight) { overlay.width = video.videoWidth; overlay.height = video.videoHeight; }
+    if (!modelsReady) { drawGuide({ ok: false, tip: 'Getting ready…' }); continue; }
+    try {
+      const d = await faceapi.detectSingleFace(video, detOpts());
+      lastQuality = judge(d); drawGuide(lastQuality);
+    } catch (e) {}
+  }
+}
+
+// take several readings and average them, which steadies recognition
+async function readFace(samples = 3) {
+  const got = []; let box = null, snap = null;
+  for (let tries = 0; got.length < samples && tries < samples * 6; tries++) {
+    const r = await faceapi.detectSingleFace(video, detOpts()).withFaceLandmarks().withFaceDescriptor();
+    if (r && insideCircle(r.detection.box, video.videoWidth, video.videoHeight)) { got.push(r.descriptor); if (!snap) { box = r.detection.box; snap = cropFace(box); } }
+    await new Promise(res => setTimeout(res, 120));
+  }
+  if (!got.length) return null;
+  const avg = new Float32Array(128);
+  got.forEach(d => d.forEach((v, i) => avg[i] += v / got.length));
+  return { descriptor: avg, photo: snap };
+}
+function cropFace(box) {
+  const c = document.createElement('canvas'); c.width = c.height = 180;
+  const m = box.width * 0.45, sx = Math.max(0, box.x - m), sy = Math.max(0, box.y - m * 1.1);
+  const s = Math.min(box.width + m * 2, video.videoWidth - sx, video.videoHeight - sy);
+  const g = c.getContext('2d'); g.translate(180, 0); g.scale(-1, 1); // match the mirrored preview
+  g.drawImage(video, sx, sy, s, s, 0, 0, 180, 180);
+  return c.toDataURL('image/jpeg', 0.75);
+}
+function rebuildMatcher() {
+  matcher = DB.staff.filter(s => Array.isArray(s.descriptors) && s.descriptors.length)
+    .map(s => ({ staff: s, descs: s.descriptors.map(d => Float32Array.from(d)) }));
+}
+function dist(a, b) { let s = 0; for (let i = 0; i < 128; i++) { const d = a[i] - b[i]; s += d * d; } return Math.sqrt(s); }
+function bestMatch(desc) {
+  let best = null;
+  matcher.forEach(m => m.descs.forEach(d => { const x = dist(desc, d); if (!best || x < best.dist) best = { staff: m.staff, dist: x }; }));
+  if (best) best.score = matchScore(best.dist);
+  return best;
+}
+// match score in percent from the face distance: 85% equals a distance of 0.5, 100% is identical
+function matchScore(d) { return Math.max(0, Math.min(100, Math.round(100 * (1 - 0.6 * d * d)))); }
+const passes = m => m && m.score >= MATCH_SCORE;
+function scoreLine(score) {
+  const ok = score >= MATCH_SCORE;
+  return `<div style="margin:6px 0 2px;font-weight:700;color:${ok ? 'var(--ok)' : 'var(--late)'}">Match score: ${score}%</div>
+    <div style="height:8px;background:#e6ebf1;border-radius:6px;overflow:hidden;margin:0 20px 6px"><div style="height:100%;width:${score}%;background:${ok ? 'var(--ok)' : 'var(--late)'}"></div></div>
+    <div class="muted" style="font-size:12px">Needs ${MATCH_SCORE}% or more</div>`;
+}
+async function identify() {
+  if (!matcher.length) { showModal(failBox('No staff registered yet', 'Register staff first in the Register tab.')); return null; }
+  setCam('Hold still, reading your face…');
+  const f = await readFace(3);
+  if (!f) { setCam('Ready. Look at the camera.'); showModal(failBox('No face found in the circle', lastQuality.ok ? 'Keep your face inside the circle and hold still, then scan again.' : lastQuality.tip + '.')); return null; }
+  const m = bestMatch(f.descriptor);
+  setCam('Ready. Look at the camera.');
+  if (!passes(m)) {
+    showModal(failBox('Face not recognised', 'The match score is below ' + MATCH_SCORE + '%. Check the light and keep your face in the circle, then scan again. If you are not registered, please register or see the administrator.')
+      .replace('<button', (m ? scoreLine(m.score) : '') + '<button'));
+    return null;
+  }
+  return { staff: m.staff, score: m.score };
+}
+
+/* ================= modal ================= */
+function showModal(html) { $('modalBox').innerHTML = html; $('modal').classList.remove('hidden'); }
+function closeModal() { $('modal').classList.add('hidden'); }
+function failBox(title, text) {
+  return `<svg viewBox="0 0 24 24" width="64" height="64" fill="none" stroke="#D55E00" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 7v6M12 16.5v.5"/></svg>
+    <h3>${esc(title)}</h3><p class="muted">${esc(text)}</p><button class="btn" onclick="closeModal()">Close</button>`;
+}
+function staffDetails(s) {
+  return `<img class="photo" src="${esc(s.photo || '')}" alt="">
+    <h3>${esc(s.name)}</h3>
+    <div class="detail"><div><span>Organisation</span><b>${esc(s.org || 'NMCP')}</b></div><div><span>Designation</span><b>${esc(s.designation)}</b></div><div><span>Unit</span><b>${esc(s.unit)}</b></div><div><span>Telephone</span><b>${esc(s.phone)}</b></div></div>`;
+}
+function toastNotice(msg, kind) { $('regMsg').innerHTML = `<div class="notice ${kind}">${esc(msg)}</div>`; }
+
+/* ================= sign in ================= */
+let session = null, sessionTimer = null;   // {staff, score}
+// typed organisation: any spelling of NMCP is stored as "NMCP" so attendance rules work
+function normOrg(o) {
+  const t = String(o || '').trim(), k = t.toUpperCase().replace(/[^A-Z]/g, '');
+  return (k === 'NMCP' || k.includes('NATIONALMALARIACONTROL')) ? 'NMCP' : t;
+}
+const isNMCP = st => !st.org || normOrg(st.org) === 'NMCP';
+$('btnSignIn').onclick = async () => {
+  busy = true; refreshButtons();
+  try {
+    if (SCRIPT_URL) pullServer(today()); // refresh meetings and records in the background
+    const hit = await identify(); if (!hit) return;
+    session = hit; showSigned();
+  } finally { busy = false; refreshButtons(); updateSyncLine(); }
+};
+function showSigned() {
+  const s = session.staff;
+  $('whoCard').innerHTML = `<div class="who"><img class="wphoto" src="${esc(s.photo || '')}" alt=""><div class="wtext"><b>${esc(s.name)}</b>
+    <small>${esc(s.org || 'NMCP')}</small><small>${esc(s.designation)}, ${esc(s.unit)}</small></div></div>` + scoreLine(session.score);
+  $('signinIntro').classList.add('hidden'); $('camCard').classList.add('hidden'); $('signedPanel').classList.remove('hidden');
+  const prev = DB.arrivals.find(a => a.staffId === s.staffId && a.date === today());
+  $('wAttendance').classList.toggle('off', !isNMCP(s));
+  $('attNote').textContent = !isNMCP(s) ? '' : prev ? 'Checked in at ' + fmtTime12(prev.time) : '';
+  armSessionTimer();
+}
+function armSessionTimer() { clearTimeout(sessionTimer); sessionTimer = setTimeout(() => { if (session) { closeModal(); signOut(); } }, 60000); }
+function signOut() {
+  session = null; clearTimeout(sessionTimer);
+  $('signedPanel').classList.add('hidden'); $('signinIntro').classList.remove('hidden');
+  switchTab('home');
+}
+function finishSession() { closeModal(); signOut(); }
+$('btnSignOut').onclick = signOut;
+
+$('wAttendance').onclick = () => {
+  if (!session) return; armSessionTimer();
+  const s = session.staff;
+  if (!isNMCP(s)) { showModal(failBox('NMCP staff only', 'Office attendance is recorded for NMCP staff only. Partners can use Meeting.')); return; }
+  const prev = DB.arrivals.find(a => a.staffId === s.staffId && a.date === today());
+  if (prev) {
+    showModal(staffDetails(s) + `<div class="status" style="color:var(--navy)">Already checked in</div>
+      <p class="muted">You arrived today at <b>${fmtTime12(prev.time)}</b> (${esc(prev.status)}).</p><button class="btn" onclick="finishSession()">Done</button>`);
+    return;
+  }
+  registerArrival(s);
+};
+async function registerArrival(s) {
+  const d = new Date(), date = today(d), time = nowTime(d);
+  if (DB.arrivals.some(a => a.staffId === s.staffId && a.date === date)) return;
+  const status = isLate(time) ? 'Late' : 'On time';
+  const rec = { id: uid(), date, time, status, staffId: s.staffId, name: s.name, designation: s.designation, unit: s.unit, org: s.org || 'NMCP', deviceTime: d.toISOString(), updatedAt: d.toISOString() };
+  DB.arrivals.push(rec); persist();
+  showModal(staffDetails(s) + `<div class="status" style="color:${status === 'Late' ? 'var(--late)' : 'var(--ok)'}">${status === 'Late' ? 'Late arrival' : 'Welcome, you are on time'}</div>
+    <p class="muted">Arrival recorded at <b>${fmtTime12(time)}</b></p><button class="btn" onclick="finishSession()">Done</button>`);
+  setTimeout(() => { if ($('modalBox').innerHTML.includes('Arrival recorded')) finishSession(); }, 6000);
+  const res = await send({ action: 'checkIn', record: rec });
+  if (res && res.duplicate && res.record) { // another device recorded this staff earlier today
+    DB.arrivals = DB.arrivals.filter(a => a.id !== rec.id).concat([res.record]); persist();
+  }
+  updateSyncLine();
+}
+
+/* ================= meeting ================= */
+const visibleMeetings = () => DB.meetings.filter(m => m.visible !== false && m.visible !== 'FALSE').sort((a, b) => String(a.name).localeCompare(b.name));
+$('wMeeting').onclick = () => {
+  if (!session) return; armSessionTimer();
+  const s = session.staff, list = visibleMeetings();
+  if (!list.length) { showModal(staffDetails(s) + `<p class="notice bad">No meeting is open at the moment. Please see the administrator.</p><button class="btn" onclick="closeModal()">Close</button>`); return; }
+  showModal(staffDetails(s) + `<label style="text-align:left">Which meeting are you attending now?</label>
+    <select id="selMeeting"><option value="">Select meeting</option>${list.map(m => `<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('')}</select>
+    <div class="err" id="eSel" style="text-align:left"></div>
+    <div class="row" style="justify-content:center;margin-top:14px"><button class="btn gold" id="btnConfirmMeeting">Register attendance</button><button class="btn light" onclick="closeModal()">Cancel</button></div>`);
+  $('btnConfirmMeeting').onclick = async () => {
+    armSessionTimer();
+    const mid = $('selMeeting').value;
+    if (!mid) { $('eSel').textContent = 'Please choose a meeting.'; return; }
+    const m = DB.meetings.find(x => x.id === mid), d = new Date(), date = today(d), time = nowTime(d);
+    const prev = DB.meetAtt.find(a => a.staffId === s.staffId && a.meetingId === mid && a.date === date);
+    if (prev) { showModal(staffDetails(s) + `<div class="status" style="color:var(--navy)">Already recorded</div><p class="muted">You signed in to <b>${esc(m.name)}</b> at ${fmtTime12(prev.time)}.</p><button class="btn" onclick="finishSession()">Done</button>`); return; }
+    const rec = { id: uid(), date, time, meetingId: mid, meetingName: m.name, staffId: s.staffId, name: s.name, designation: s.designation, unit: s.unit, org: s.org || 'NMCP', deviceTime: d.toISOString(), updatedAt: d.toISOString() };
+    DB.meetAtt.push(rec); persist();
+    showModal(staffDetails(s) + `<div class="status" style="color:var(--ok)">Attendance recorded</div><p class="muted"><b>${esc(m.name)}</b><br>${fmtTime12(time)}</p><button class="btn" onclick="finishSession()">Done</button>`);
+    setTimeout(() => { if ($('modalBox').innerHTML.includes('Attendance recorded')) finishSession(); }, 6000);
+    await send({ action: 'meetingCheckIn', record: rec }); updateSyncLine();
+  };
+};
+
+/* ================= register ================= */
+let captured = []; // {descriptor, photo}
+const prompts = ['Look straight at the camera', 'Turn your head slightly to the left', 'Turn your head slightly to the right'];
+// one standard photo: look straight. Three quick readings of the same straight face are kept for matching.
+const READINGS = 3;
+// spoken instructions (the phone or computer's own voice, no internet needed)
+function say(text) {
+  try {
+    if (!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    const v = speechSynthesis.getVoices().find(x => /^en(-|_)(GB|US)/i.test(x.lang)) || speechSynthesis.getVoices().find(x => /^en/i.test(x.lang));
+    if (v) u.voice = v;
+    u.lang = v ? v.lang : 'en-GB'; u.rate = 0.95;
+    speechSynthesis.speak(u);
+  } catch (e) {}
+}
+function capturePrompt() {
+  const done = captured.length >= READINGS;
+  $('capLbl').textContent = done ? 'Photo taken' : 'Capture photo';
+  if (!busy && currentTab === 'register' && camReady && modelsReady && !camError && !modelError)
+    setCam(done ? 'Photo taken. Press Register below.' : 'Look straight at the camera, then press Capture photo.');
+}
+const wait = ms => new Promise(r => setTimeout(r, ms));
+async function countdown(text) {
+  const el = $('countdown'); el.classList.remove('hidden'); $('faceTip').style.visibility = 'hidden';
+  for (let i = 3; i >= 1; i--) { el.innerHTML = `<b>${i}</b><span>${esc(text)}</span>`; await wait(1000); }
+  el.classList.add('hidden'); $('faceTip').style.visibility = '';
+}
+$('btnCapture').onclick = async () => {
+  if (captured.length >= READINGS) { goToRegister(); return; }
+  busy = true; refreshButtons(); captured = []; drawShots();
+  try {
+    setCam('Look straight at the camera'); say('Look straight at the camera.');
+    await countdown('Look straight');
+    setCam('Hold still…');
+    const got = [];
+    for (let k = 0; k < READINGS; k++) {
+      const f = await readFace(2);
+      if (!f) break;
+      got.push(f); await wait(250);
+    }
+    if (got.length < READINGS) {
+      const why = lastQuality.ok ? 'Keep your face inside the circle and hold still' : lastQuality.tip;
+      setCam(`The photo was not taken. ${why}, then press Capture photo again.`, true); say(`The photo was not taken. ${why}.`); return;
+    }
+    // stop the same face being registered twice
+    const m = bestMatch(got[0].descriptor);
+    if (passes(m) && m.staff.staffId !== 'TEL-' + cc.code + nationalNumber()) { toastNotice(`This face is already registered as ${m.staff.name}.`, 'bad'); say('This face is already registered.'); return; }
+    captured = got; drawShots();
+    toastNotice('Photo taken. Press Register.', 'ok');
+    say('Photo taken. Please press Register.');
+    goToRegister();
+  } finally { busy = false; refreshButtons(); capturePrompt(); }
+};
+function goToRegister() {
+  $('btnSave').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  $('btnSave').classList.remove('pulse'); void $('btnSave').offsetWidth; $('btnSave').classList.add('pulse');
+}
+function drawShots() {
+  const done = captured.length >= READINGS;
+  $('shots').innerHTML = `<div class="shot ${done ? 'done' : 'next'}"><div class="ph">${done ? `<img src="${captured[0].photo}">` : '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="9" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg>'}</div>Look straight</div>`;
+}
+function fieldErr(id, msg) { $(id).textContent = msg || ''; return !msg; }
+/* telephone: country flag and code, then the number */
+const COUNTRIES = 'AF|Afghanistan|93;AL|Albania|355;DZ|Algeria|213;AD|Andorra|376;AO|Angola|244;AG|Antigua and Barbuda|1268;AR|Argentina|54;AM|Armenia|374;AU|Australia|61;AT|Austria|43;AZ|Azerbaijan|994;BS|Bahamas|1242;BH|Bahrain|973;BD|Bangladesh|880;BB|Barbados|1246;BY|Belarus|375;BE|Belgium|32;BZ|Belize|501;BJ|Benin|229;BT|Bhutan|975;BO|Bolivia|591;BA|Bosnia and Herzegovina|387;BW|Botswana|267;BR|Brazil|55;BN|Brunei|673;BG|Bulgaria|359;BF|Burkina Faso|226;BI|Burundi|257;CV|Cabo Verde|238;KH|Cambodia|855;CM|Cameroon|237;CA|Canada|1;CF|Central African Republic|236;TD|Chad|235;CL|Chile|56;CN|China|86;CO|Colombia|57;KM|Comoros|269;CG|Congo|242;CD|Congo (DRC)|243;CR|Costa Rica|506;CI|Côte d\'Ivoire|225;HR|Croatia|385;CU|Cuba|53;CY|Cyprus|357;CZ|Czechia|420;DK|Denmark|45;DJ|Djibouti|253;DM|Dominica|1767;DO|Dominican Republic|1809;EC|Ecuador|593;EG|Egypt|20;SV|El Salvador|503;GQ|Equatorial Guinea|240;ER|Eritrea|291;EE|Estonia|372;SZ|Eswatini|268;ET|Ethiopia|251;FJ|Fiji|679;FI|Finland|358;FR|France|33;GA|Gabon|241;GM|Gambia|220;GE|Georgia|995;DE|Germany|49;GH|Ghana|233;GR|Greece|30;GD|Grenada|1473;GT|Guatemala|502;GN|Guinea|224;GW|Guinea-Bissau|245;GY|Guyana|592;HT|Haiti|509;HN|Honduras|504;HK|Hong Kong|852;HU|Hungary|36;IS|Iceland|354;IN|India|91;ID|Indonesia|62;IR|Iran|98;IQ|Iraq|964;IE|Ireland|353;IL|Israel|972;IT|Italy|39;JM|Jamaica|1876;JP|Japan|81;JO|Jordan|962;KZ|Kazakhstan|7;KE|Kenya|254;KI|Kiribati|686;KW|Kuwait|965;KG|Kyrgyzstan|996;LA|Laos|856;LV|Latvia|371;LB|Lebanon|961;LS|Lesotho|266;LR|Liberia|231;LY|Libya|218;LI|Liechtenstein|423;LT|Lithuania|370;LU|Luxembourg|352;MG|Madagascar|261;MW|Malawi|265;MY|Malaysia|60;MV|Maldives|960;ML|Mali|223;MT|Malta|356;MH|Marshall Islands|692;MR|Mauritania|222;MU|Mauritius|230;MX|Mexico|52;FM|Micronesia|691;MD|Moldova|373;MC|Monaco|377;MN|Mongolia|976;ME|Montenegro|382;MA|Morocco|212;MZ|Mozambique|258;MM|Myanmar|95;NA|Namibia|264;NR|Nauru|674;NP|Nepal|977;NL|Netherlands|31;NZ|New Zealand|64;NI|Nicaragua|505;NE|Niger|227;NG|Nigeria|234;KP|North Korea|850;MK|North Macedonia|389;NO|Norway|47;OM|Oman|968;PK|Pakistan|92;PW|Palau|680;PS|Palestine|970;PA|Panama|507;PG|Papua New Guinea|675;PY|Paraguay|595;PE|Peru|51;PH|Philippines|63;PL|Poland|48;PT|Portugal|351;QA|Qatar|974;RO|Romania|40;RU|Russia|7;RW|Rwanda|250;KN|Saint Kitts and Nevis|1869;LC|Saint Lucia|1758;VC|Saint Vincent and the Grenadines|1784;WS|Samoa|685;SM|San Marino|378;ST|São Tomé and Príncipe|239;SA|Saudi Arabia|966;SN|Senegal|221;RS|Serbia|381;SC|Seychelles|248;SL|Sierra Leone|232;SG|Singapore|65;SK|Slovakia|421;SI|Slovenia|386;SB|Solomon Islands|677;SO|Somalia|252;ZA|South Africa|27;KR|South Korea|82;SS|South Sudan|211;ES|Spain|34;LK|Sri Lanka|94;SD|Sudan|249;SR|Suriname|597;SE|Sweden|46;CH|Switzerland|41;SY|Syria|963;TW|Taiwan|886;TJ|Tajikistan|992;TZ|Tanzania|255;TH|Thailand|66;TL|Timor-Leste|670;TG|Togo|228;TO|Tonga|676;TT|Trinidad and Tobago|1868;TN|Tunisia|216;TR|Türkiye|90;TM|Turkmenistan|993;TV|Tuvalu|688;UG|Uganda|256;UA|Ukraine|380;AE|United Arab Emirates|971;GB|United Kingdom|44;US|United States|1;UY|Uruguay|598;UZ|Uzbekistan|998;VU|Vanuatu|678;VA|Vatican City|39;VE|Venezuela|58;VN|Vietnam|84;YE|Yemen|967;ZM|Zambia|260;ZW|Zimbabwe|263'.split(';').map(r => { const [iso, name, code] = r.split('|'); return { iso, name, code }; });
+const DEFAULT_ISO = 'SL';
+let cc = COUNTRIES.find(c => c.iso === DEFAULT_ISO);
+const flagUrl = iso => `https://flagcdn.com/${iso.toLowerCase()}.svg`;
+function setCountry(c) {
+  cc = c; $('ccCode').textContent = '+' + c.code;
+  $('ccFlag').style.visibility = 'visible'; $('ccFlag').src = flagUrl(c.iso); $('ccFlag').alt = c.name;
+  $('ccPanel').classList.add('hidden'); $('ePhone').textContent = '';
+}
+$('ccFlag').onerror = function () { this.style.visibility = 'hidden'; }; // offline: the code still shows
+function drawCountries() {
+  const q = $('ccSearch').value.trim().toLowerCase().replace(/^\+/, '');
+  const list = COUNTRIES.filter(c => !q || c.name.toLowerCase().includes(q) || c.code.startsWith(q) || c.iso.toLowerCase() === q);
+  $('ccList').innerHTML = list.map(c => `<button type="button" class="ccrow ${c === cc ? 'on' : ''}" data-iso="${c.iso}"><img src="${flagUrl(c.iso)}" alt="" loading="lazy" onerror="this.style.visibility='hidden'">${esc(c.name)}<b>+${c.code}</b></button>`).join('') || '<div class="muted" style="padding:8px">No country found</div>';
+}
+$('ccBtn').onclick = () => { const p = $('ccPanel'); p.classList.toggle('hidden'); if (!p.classList.contains('hidden')) { $('ccSearch').value = ''; drawCountries(); $('ccSearch').focus(); } };
+$('ccSearch').oninput = drawCountries;
+$('ccList').onclick = e => { const b = e.target.closest('.ccrow'); if (b) setCountry(COUNTRIES.find(c => c.iso === b.dataset.iso)); };
+$('rPhone').addEventListener('input', e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 14); });
+// the number without its leading 0, e.g. 076 123 456 becomes 76123456
+const nationalNumber = () => $('rPhone').value.replace(/\D/g, '').replace(/^0+/, '');
+const fullPhone = () => '+' + cc.code + ' ' + nationalNumber();
+// digits only, for comparing; old local Sierra Leone numbers (0XXXXXXXX) count as +232
+function phoneDigits(p) { p = String(p || ''); if (/^0\d{8}$/.test(p)) return '232' + p.slice(1); return p.replace(/\D/g, ''); }
+// digits allowed after the country code (leading 0 removed). Countries not listed, or whose
+// numbers vary a lot, fall back to 6 to 12 digits.
+const NUM_LEN = {
+  SL:[8], LR:[8,9], GN:[9], GH:[9], NG:[10], GM:[7], SN:[9], CI:[10], ML:[8], BF:[8], NE:[8], TG:[8], BJ:[8,10],
+  CM:[9], KE:[9], UG:[9], TZ:[9], RW:[9], BI:[8], ET:[9], ER:[7], DJ:[8], SO:[7,8,9], SD:[9], SS:[9], EG:[10], LY:[9],
+  TN:[8], DZ:[9], MA:[9], MR:[8], CV:[7], GW:[9], GQ:[9], ST:[7], GA:[7,8], CG:[9], CD:[9], CF:[8], TD:[8], AO:[9],
+  ZA:[9], ZM:[9], ZW:[9], MW:[9], MZ:[9], BW:[7,8], NA:[9], LS:[8], SZ:[8], MG:[9], MU:[7,8], SC:[7], KM:[7],
+  GB:[9,10], IE:[7,8,9], US:[10], CA:[10], FR:[9], ES:[9], PT:[9], NL:[9], BE:[8,9], CH:[9], IT:[9,10], NO:[8], DK:[8],
+  IN:[10], PK:[10], BD:[10], CN:[11], JP:[9,10], AU:[9], BR:[10,11], MX:[10], AR:[10], RU:[10], KZ:[10], TR:[10],
+  SA:[9], AE:[8,9], QA:[8], KW:[8], BH:[8], OM:[8], JO:[9], IL:[9], PH:[10], SG:[8], TH:[9], VN:[9], MY:[9,10]
+};
+const lenText = a => a.length === 1 ? `${a[0]} digits` : `${a.slice(0, -1).join(', ')} or ${a[a.length - 1]} digits`;
+function phoneError() {
+  const n = nationalNumber();
+  if (!n) return 'Wrong entry: enter the telephone number.';
+  const allowed = NUM_LEN[cc.iso];
+  if (allowed && !allowed.includes(n.length)) return `Wrong entry: a ${cc.name} number has ${lenText(allowed)} after +${cc.code}.`;
+  if (!allowed && (n.length < 6 || n.length > 12)) return 'Wrong entry: check the telephone number.';
+  if ((cc.code + n).length > 15) return 'Wrong entry: the number is too long.';
+  return '';
+}
+setCountry(cc);
+$('btnSave').onclick = async () => {
+  const v = k => $(k).value.trim();
+  let ok = true;
+  ok &= fieldErr('eName', v('rName') ? '' : 'Wrong entry: enter the full name.');
+  const org = normOrg(v('rOrg'));
+  ok &= fieldErr('eOrg', org ? '' : 'Wrong entry: type the organisation.');
+  ok &= fieldErr('eDesig', v('rDesig') ? '' : 'Wrong entry: enter the designation.');
+  ok &= fieldErr('eUnit', v('rUnit') ? '' : 'Wrong entry: enter the unit or department.');
+  ok &= fieldErr('ePhone', phoneError());
+  ok &= fieldErr('eEmail', !v('rEmail') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('rEmail')) ? '' : 'Wrong entry: check the email address.');
+  if (!ok) return;
+  if (captured.length < READINGS) { toastNotice('Take your photo with the Capture photo button before you register.', 'bad'); return; }
+  const phone = fullPhone(), newId = 'TEL-' + phoneDigits(phone); // internal key, not shown
+  if (DB.staff.some(s => phoneDigits(s.phone) === phoneDigits(phone) || s.staffId === newId)) { fieldErr('ePhone', 'This telephone number is already registered. The administrator can remove it first to register again.'); return; }
+  const t = new Date().toISOString();
+  const rec = {
+    staffId: newId, org, name: v('rName'), designation: v('rDesig'), unit: v('rUnit'), phone, email: v('rEmail'),
+    photo: captured[0].photo,
+    descriptors: captured.map(c => Array.from(c.descriptor, x => Math.round(x * 1e5) / 1e5)),
+    registeredAt: t, updatedAt: t
+  };
+  DB.deleted = DB.deleted.filter(x => x !== rec.staffId);
+  DB.staff.push(rec); persist(); rebuildMatcher();
+  const res = await send({ action: 'saveStaff', staff: rec });
+  toastNotice(res && res.ok ? `${rec.name} registered and saved to the server.` : res && res.error ? 'Saved on this device, but the server said: ' + res.error : `${rec.name} registered on this device. It will be sent to the server when online.`, res && res.error ? 'bad' : 'ok');
+  clearForm(false); updateSyncLine();
+};
+function clearForm(clearMsg = true) {
+  ['rName', 'rOrg', 'rDesig', 'rUnit', 'rPhone', 'rEmail'].forEach(k => $(k).value = '');
+  ['eName', 'eOrg', 'eDesig', 'eUnit', 'ePhone', 'eEmail'].forEach(k => $(k).textContent = '');
+  setCountry(COUNTRIES.find(c => c.iso === DEFAULT_ISO));
+  captured = []; drawShots(); if (clearMsg) $('regMsg').innerHTML = ''; capturePrompt();
+}
+$('btnClear').onclick = () => clearForm(true);
+
+/* ================= admin ================= */
+let adminOpen = sessionStorage.getItem('nmcpAttAdmin') === '1';
+function askAdmin(then) {
+  showModal(`<svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="#1565c0" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <h3>Administrator</h3><label style="text-align:left">Password</label><input type="password" id="admPw">
+    <div class="err" id="eAdm" style="text-align:left"></div>
+    <div class="row" style="justify-content:center;margin-top:14px"><button class="btn" id="btnAdm">Open</button><button class="btn light" id="btnAdmCancel">Cancel</button></div>`);
+  const go = () => { if ($('admPw').value === ADMIN_PASSWORD) { adminOpen = true; sessionStorage.setItem('nmcpAttAdmin', '1'); closeModal(); then(); } else $('eAdm').textContent = 'Wrong password.'; };
+  $('btnAdm').onclick = go; $('admPw').onkeydown = e => { if (e.key === 'Enter') go(); };
+  $('btnAdmCancel').onclick = () => { closeModal(); switchTab('home'); };
+  setTimeout(() => $('admPw').focus(), 50);
+}
+$('btnLogout').onclick = () => { adminOpen = false; sessionStorage.removeItem('nmcpAttAdmin'); switchTab('home'); };
+$('btnRefresh').onclick = async () => { const ok = await pullServer(); renderAdmin(); if (!ok && SCRIPT_URL) alertBox('Server not reachable', 'Showing what is saved on this device.'); };
+function alertBox(t, m) { showModal(failBox(t, m)); }
+
+$('btnAddMeeting').onclick = async () => {
+  const name = $('mName').value.trim();
+  if (!name) { $('eMeeting').textContent = 'Type the meeting name.'; return; }
+  if (DB.meetings.some(m => m.name.toLowerCase() === name.toLowerCase() && m.visible !== false)) { $('eMeeting').textContent = 'A shown meeting already has this name.'; return; }
+  $('eMeeting').textContent = '';
+  const t = new Date().toISOString();
+  const m = { id: uid(), name, visible: true, createdAt: t, updatedAt: t };
+  DB.meetings.push(m); persist(); $('mName').value = ''; renderMeetings();
+  await send({ action: 'saveMeeting', meeting: m, adminPassword: ADMIN_PASSWORD }); updateSyncLine();
+};
+async function toggleMeeting(id) {
+  const m = DB.meetings.find(x => x.id === id); if (!m) return;
+  m.visible = !(m.visible !== false); m.updatedAt = new Date().toISOString(); persist(); renderMeetings();
+  await send({ action: 'saveMeeting', meeting: m, adminPassword: ADMIN_PASSWORD }); updateSyncLine();
+}
+async function deleteMeeting(id) {
+  const m = DB.meetings.find(x => x.id === id); if (!m) return;
+  showModal(`<h3>Delete meeting?</h3><p class="muted"><b>${esc(m.name)}</b> will be removed from the list. Attendance already recorded for it is kept.</p>
+    <div class="row" style="justify-content:center"><button class="btn danger" id="btnDelM">Delete</button><button class="btn light" onclick="closeModal()">Cancel</button></div>`);
+  $('btnDelM').onclick = async () => {
+    DB.meetings = DB.meetings.filter(x => x.id !== id); DB.deleted.push(id); persist(); closeModal(); renderMeetings();
+    await send({ action: 'deleteMeeting', id, adminPassword: ADMIN_PASSWORD }); updateSyncLine();
+  };
+}
+async function deleteStaff(staffId) {
+  const s = DB.staff.find(x => x.staffId === staffId); if (!s) return;
+  showModal(staffDetails(s) + `<p class="notice bad">Remove this staff member? They will no longer be recognised. Past attendance is kept.</p>
+    <div class="row" style="justify-content:center"><button class="btn danger" id="btnDelS">Remove</button><button class="btn light" onclick="closeModal()">Cancel</button></div>`);
+  $('btnDelS').onclick = async () => {
+    DB.staff = DB.staff.filter(x => x.staffId !== staffId); DB.deleted.push(staffId); persist(); rebuildMatcher(); closeModal(); renderStaff();
+    await send({ action: 'deleteStaff', staffId, adminPassword: ADMIN_PASSWORD }); updateSyncLine();
+  };
+}
+
+const orgOf = id => (DB.staff.find(s => s.staffId === id) || {}).org || 'NMCP';
+const photoOf = id => (DB.staff.find(s => s.staffId === id) || {}).photo || '';
+const avatar = id => { const p = photoOf(id); return p ? `<img class="av" src="${esc(p)}">` : ''; };
+function renderMeetings() {
+  const list = DB.meetings.slice().sort((a, b) => String(b.createdAt).localeCompare(String(a.createdAt)));
+  $('tbMeetings').innerHTML = list.length ? list.map(m => {
+    const shown = m.visible !== false;
+    return `<tr><td><b>${esc(m.name)}</b></td><td>${esc(String(m.createdAt || '').slice(0, 10))}</td>
+      <td><span class="tag ${shown ? 'ok' : 'hid'}">${shown ? 'Shown' : 'Hidden'}</span></td>
+      <td style="white-space:nowrap"><button class="btn small ${shown ? 'light' : ''}" onclick="toggleMeeting('${esc(m.id)}')">${shown ? 'Hide' : 'Show'}</button>
+      <button class="btn small danger" onclick="deleteMeeting('${esc(m.id)}')">Delete</button></td></tr>`;
+  }).join('') : '<tr><td colspan="4" class="muted">No meetings yet. Add one above.</td></tr>';
+}
+function renderArrivals() {
+  const date = $('aDate').value || today();
+  const rows = DB.arrivals.filter(a => a.date === date).sort((a, b) => a.time.localeCompare(b.time));
+  const late = rows.filter(r => r.status === 'Late').length;
+  $('aStats').innerHTML = `<div class="stat"><b>${rows.length}</b>Present</div><div class="stat"><b style="color:var(--ok)">${rows.length - late}</b>On time</div><div class="stat"><b style="color:var(--late)">${late}</b>Late</div><div class="stat"><b>${DB.staff.filter(isNMCP).length}</b>NMCP staff registered</div>`;
+  $('tbArrivals').innerHTML = rows.length ? rows.map(r => `<tr><td>${avatar(r.staffId)}</td><td>${fmtTime12(r.time)}</td><td><b>${esc(r.name)}</b></td><td>${esc(r.designation)}</td><td>${esc(r.unit)}</td>
+    <td><span class="tag ${r.status === 'Late' ? 'late' : 'ok'}">${esc(r.status)}</span></td></tr>`).join('') : '<tr><td colspan="7" class="muted">No arrivals recorded for this date.</td></tr>';
+}
+function renderMatt() {
+  const date = $('mDate').value || today(), f = $('mFilter').value;
+  const names = [...new Set(DB.meetAtt.filter(a => a.date === date).map(a => a.meetingName))].sort();
+  const keep = f && names.includes(f) ? f : '';
+  $('mFilter').innerHTML = '<option value="">All meetings</option>' + names.map(n => `<option ${n === keep ? 'selected' : ''}>${esc(n)}</option>`).join('');
+  const rows = DB.meetAtt.filter(a => a.date === date && (!keep || a.meetingName === keep)).sort((a, b) => a.time.localeCompare(b.time));
+  $('mStats').innerHTML = `<div class="stat"><b>${rows.length}</b>Attendees</div><div class="stat"><b>${new Set(rows.map(r => r.meetingName)).size}</b>Meetings</div>`;
+  $('tbMatt').innerHTML = rows.length ? rows.map(r => `<tr><td>${avatar(r.staffId)}</td><td>${fmtTime12(r.time)}</td><td><b>${esc(r.name)}</b></td><td>${esc(r.org || orgOf(r.staffId))}</td><td>${esc(r.designation)}</td><td>${esc(r.meetingName)}</td></tr>`).join('')
+    : '<tr><td colspan="6" class="muted">No meeting attendance recorded for this date.</td></tr>';
+}
+function renderStaff() {
+  const list = DB.staff.slice().sort((a, b) => a.name.localeCompare(b.name));
+  $('tbStaff').innerHTML = list.length ? list.map(s => `<tr><td>${s.photo ? `<img class="av" src="${esc(s.photo)}">` : ''}</td><td><b>${esc(s.name)}</b></td><td>${esc(s.org || 'NMCP')}</td><td>${esc(s.designation)}</td><td>${esc(s.unit)}</td><td>${esc(s.phone)}</td>
+    <td><button class="btn small danger" onclick="deleteStaff('${esc(s.staffId)}')">Remove</button></td></tr>`).join('') : '<tr><td colspan="7" class="muted">No one registered yet.</td></tr>';
+}
+function summaryData() {
+  const from = $('sFrom').value || '0000-00-00', to = $('sTo').value || '9999-99-99';
+  const inRange = r => r.date >= from && r.date <= to;
+  const arr = DB.arrivals.filter(inRange), mat = DB.meetAtt.filter(inRange);
+  const days = [...new Set(arr.map(a => a.date))].length;
+  const people = new Map();
+  DB.staff.filter(isNMCP).forEach(s => people.set(s.staffId, { staffId: s.staffId, name: s.name, unit: s.unit, present: 0, ontime: 0, late: 0, meetings: 0 }));
+  arr.forEach(a => { if (!people.has(a.staffId)) people.set(a.staffId, { staffId: a.staffId, name: a.name, unit: a.unit, present: 0, ontime: 0, late: 0, meetings: 0 });
+    const p = people.get(a.staffId); p.present++; a.status === 'Late' ? p.late++ : p.ontime++; });
+  mat.forEach(m => { if (people.has(m.staffId)) people.get(m.staffId).meetings++; });
+  const office = [...people.values()].sort((a, b) => b.present - a.present || a.name.localeCompare(b.name));
+  const groups = new Map();
+  mat.forEach(m => { const k = m.date + '|' + m.meetingId; if (!groups.has(k)) groups.set(k, { date: m.date, meeting: m.meetingName, names: [] }); groups.get(k).names.push(m.name); });
+  const meets = [...groups.values()].sort((a, b) => b.date.localeCompare(a.date) || a.meeting.localeCompare(b.meeting));
+  return { arr, mat, days, office, meets };
+}
+const pct = (a, b) => b ? Math.round(100 * a / b) + '%' : '';
+function renderSummary() {
+  const d = summaryData(), late = d.arr.filter(a => a.status === 'Late').length;
+  $('sOfficeStats').innerHTML = `<div class="stat"><b>${d.days}</b>Working days with records</div><div class="stat"><b>${d.arr.length}</b>Arrivals</div><div class="stat"><b style="color:var(--ok)">${d.arr.length - late}</b>On time</div><div class="stat"><b style="color:var(--late)">${late}</b>Late</div><div class="stat"><b>${pct(d.arr.length - late, d.arr.length) || '0%'}</b>On time rate</div>`;
+  $('tbSumOffice').innerHTML = d.office.length ? d.office.map(p => `<tr><td>${avatar(p.staffId)}</td><td><b>${esc(p.name)}</b></td><td>${esc(p.unit)}</td><td>${p.present} of ${d.days}</td><td>${p.ontime}</td><td style="color:${p.late ? 'var(--late)' : 'inherit'}">${p.late}</td><td>${pct(p.ontime, p.present)}</td><td>${p.meetings}</td></tr>`).join('')
+    : '<tr><td colspan="9" class="muted">No staff registered yet.</td></tr>';
+  $('sMeetStats').innerHTML = `<div class="stat"><b>${d.meets.length}</b>Meeting sessions</div><div class="stat"><b>${d.mat.length}</b>Total sign ins</div><div class="stat"><b>${d.meets.length ? Math.round(d.mat.length / d.meets.length) : 0}</b>Average per meeting</div>`;
+  $('tbSumMeet').innerHTML = d.meets.length ? d.meets.map(m => `<tr><td><b>${esc(m.meeting)}</b></td><td>${esc(m.date)}</td><td>${m.names.length}</td><td>${esc(m.names.sort().join(', '))}</td></tr>`).join('')
+    : '<tr><td colspan="4" class="muted">No meeting attendance in this period.</td></tr>';
+}
+function renderAdmin() { renderMeetings(); renderArrivals(); renderMatt(); renderStaff(); renderSummary(); }
+$('sFrom').onchange = $('sTo').onchange = renderSummary;
+$('btnExportSO').onclick = () => { const d = summaryData();
+  downloadCSV(`office_attendance_summary_${$('sFrom').value}_to_${$('sTo').value}.csv`, ['Full Name', 'Unit', 'Days present', 'Working days', 'On time', 'Late', 'On time %', 'Meetings attended'],
+    d.office.map(p => [p.name, p.unit, p.present, d.days, p.ontime, p.late, pct(p.ontime, p.present), p.meetings])); };
+$('btnExportSM').onclick = () => { const d = summaryData();
+  downloadCSV(`meeting_attendance_summary_${$('sFrom').value}_to_${$('sTo').value}.csv`, ['Meeting', 'Date', 'Attended', 'Who attended'], d.meets.map(m => [m.meeting, m.date, m.names.length, m.names.join('; ')])); };
+$('aDate').onchange = async () => { await pullServer($('aDate').value); renderArrivals(); };
+$('mDate').onchange = async () => { await pullServer($('mDate').value); renderMatt(); };
+$('mFilter').onchange = renderMatt;
+
+function downloadCSV(name, header, rows) {
+  const q = v => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
+  const csv = [header.map(q).join(',')].concat(rows.map(r => r.map(q).join(','))).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv' })); a.download = name; a.click();
+}
+$('btnExportA').onclick = () => {
+  const date = $('aDate').value || today();
+  const rows = DB.arrivals.filter(a => a.date === date).sort((a, b) => a.time.localeCompare(b.time));
+  downloadCSV(`arrivals_${date}.csv`, ['Date', 'Time', 'Status', 'Full Name', 'Designation', 'Unit'], rows.map(r => [r.date, r.time, r.status, r.name, r.designation, r.unit]));
+};
+$('btnExportM').onclick = () => {
+  const date = $('mDate').value || today(), f = $('mFilter').value;
+  const rows = DB.meetAtt.filter(a => a.date === date && (!f || a.meetingName === f)).sort((a, b) => a.time.localeCompare(b.time));
+  downloadCSV(`meeting_attendance_${date}.csv`, ['Date', 'Time', 'Meeting', 'Full Name', 'Organisation', 'Designation', 'Unit'], rows.map(r => [r.date, r.time, r.meetingName, r.name, r.org || orgOf(r.staffId), r.designation, r.unit]));
+};
+document.querySelectorAll('#subnav button').forEach(b => b.onclick = () => {
+  document.querySelectorAll('#subnav button').forEach(x => x.classList.toggle('active', x === b));
+  ['meetings', 'arrivals', 'matt', 'staff', 'summary'].forEach(k => $('sub-' + k).classList.toggle('hidden', k !== b.dataset.sub));
+  if (b.dataset.sub === 'summary') pullServer().then(renderSummary);
+});
+
+/* ================= tabs ================= */
+let currentTab = 'home';
+function switchTab(tab) {
+  currentTab = tab;
+  if (tab !== 'signin' && session) { session = null; clearTimeout(sessionTimer); $('signedPanel').classList.add('hidden'); $('signinIntro').classList.remove('hidden'); }
+  document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  ['home', 'signin', 'register', 'admin'].forEach(k => $('tab-' + k).classList.toggle('hidden', k !== tab));
+  $('camCard').classList.toggle('hidden', !(tab === 'register' || (tab === 'signin' && !session)));
+  showCamButton(tab);
+  if ((tab === 'register' || tab === 'signin') && !camReady) startCamera();
+  $('regFinish').classList.toggle('hidden', tab !== 'register');
+  if (tab === 'register') drawShots();
+  if (tab === 'register' || tab === 'signin') showReady();
+  if (tab === 'admin') {
+    if (!adminOpen) { askAdmin(() => switchTab('admin')); return; }
+    renderAdmin(); pullServer($('aDate').value || today()).then(renderAdmin);
+  }
+  window.scrollTo(0, 0);
+}
+$('wSignUp').onclick = () => switchTab('register');
+$('wSignIn').onclick = () => switchTab('signin');
+document.querySelectorAll('#nav button').forEach(b => b.onclick = () => { closeMenu(); switchTab(b.dataset.tab); });
+function closeMenu() { $('nav').classList.remove('open'); $('menuBtn').classList.remove('open'); $('menuBtn').setAttribute('aria-expanded', 'false'); }
+$('menuBtn').onclick = e => { e.stopPropagation(); const o = !$('nav').classList.contains('open'); $('nav').classList.toggle('open', o); $('menuBtn').classList.toggle('open', o); $('menuBtn').setAttribute('aria-expanded', String(o)); };
+document.addEventListener('click', e => { if (!e.target.closest('#nav') && !e.target.closest('#menuBtn')) closeMenu(); });
+$('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+
+/* ================= start ================= */
+const CAM_BTN = { signin: 'btnSignIn', register: 'btnCapture' };
+Object.values(CAM_BTN).forEach(id => $('camActions').appendChild($(id)));
+function showCamButton(tab) { Object.entries(CAM_BTN).forEach(([t, id]) => $(id).classList.toggle('hidden', t !== tab)); }
+switchTab('home');
+$('aDate').value = today(); $('mDate').value = today();
+$('sFrom').value = today().slice(0, 8) + '01'; $('sTo').value = today();
+rebuildMatcher(); updateSyncLine();
+startCamera(); loadModels();
+pullServer(today()).then(() => flushQueue());
+</script>
+</body>
+</html>
