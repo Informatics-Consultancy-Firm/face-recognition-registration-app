@@ -273,6 +273,7 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
         <button data-sub="matt">Meeting attendance</button>
         <button data-sub="staff">Staff</button>
         <button data-sub="summary">Summary</button>
+        <button data-sub="settings">Settings</button>
       </div>
 
       <div id="sub-meetings">
@@ -296,6 +297,14 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
         <div class="row"><input type="date" id="mDate" style="max-width:200px"><select id="mFilter" style="max-width:300px"></select><button class="btn light small" id="btnExportM">Export CSV</button></div>
         <div class="stats" id="mStats"></div>
         <div class="tablewrap"><table><thead><tr><th></th><th>Time</th><th>Name</th><th>Organisation</th><th>Designation</th><th>Meeting</th></tr></thead><tbody id="tbMatt"></tbody></table></div>
+      </div>
+
+      <div id="sub-settings" class="hidden">
+        <h2>Settings</h2>
+        <label for="setLate">Arrival is late after</label>
+        <div class="row"><input type="time" id="setLate" style="max-width:200px"><button class="btn" id="btnSaveLate">Save</button></div>
+        <p class="muted" style="margin:8px 0 0">Staff who arrive after this time are recorded as Late. The time is saved in the Google Sheet (Settings tab) and every device uses it. Arrivals already recorded keep their status.</p>
+        <div id="setMsg"></div>
       </div>
 
       <div id="sub-summary" class="hidden">
@@ -331,13 +340,13 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
 /* ================= settings ================= */
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbp4anCrRWd5awuNpSB5e_JYep_JVprKOUYiZ-RWwCa7kcDY-e6YgeEwM90juyOOc4/exec';   // Apps Script web app (FaceAttendance.gs)
 const ADMIN_PASSWORD = 'admin123';     // opens the Admin tab
-const LATE_AFTER = '09:00';            // arrival after this time is Late
+const DEFAULT_LATE_AFTER = '09:00';    // used until the admin sets a time in Admin > Settings
 const MATCH_SCORE = 85;                // minimum match score (%) before the Register button is shown
 const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.15/model';
 const STORE_KEY = 'nmcpFaceAttendance_v1';
 
 /* ================= storage ================= */
-const blank = () => ({ staff: [], arrivals: [], meetAtt: [], meetings: [], deleted: [], queue: [], lastSync: '' });
+const blank = () => ({ staff: [], arrivals: [], meetAtt: [], meetings: [], deleted: [], queue: [], lastSync: '', settings: {} });
 let DB = blank();
 try { DB = Object.assign(blank(), JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); } catch (e) {}
 function persist() {
@@ -353,12 +362,14 @@ const nowTime = (d = new Date()) => `${pad(d.getHours())}:${pad(d.getMinutes())}
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function isLate(time) {
-  const [lh, lm] = LATE_AFTER.split(':').map(Number);
+  const [lh, lm] = lateAfter().split(':').map(Number);
   const [h, m, s] = time.split(':').map(Number);
   return h * 3600 + m * 60 + (s || 0) > lh * 3600 + lm * 60;
 }
 function fmtTime12(t) { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}:${pad(m)} ${h < 12 ? 'AM' : 'PM'}`; }
-$('lateLbl').textContent = fmtTime12(LATE_AFTER + ':00');
+const lateAfter = () => /^\d{2}:\d{2}$/.test((DB.settings || {}).lateAfter || '') ? DB.settings.lateAfter : DEFAULT_LATE_AFTER;
+function showLateTime() { $('lateLbl').textContent = fmtTime12(lateAfter() + ':00'); if ($('setLate')) $('setLate').value = lateAfter(); }
+showLateTime();
 const tickClock = () => { const d = new Date(); $('clock').textContent = d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + '  •  ' + nowTime(d); };
 tickClock(); setInterval(tickClock, 1000);
 
@@ -399,6 +410,8 @@ async function pullServer(date) {
       // meetings are managed on the server, so its list wins (except edits still waiting in the queue)
       const waiting = new Set(DB.queue.filter(q => q.action === 'saveMeeting').map(q => q.meeting.id));
       DB.meetings = (b.meetings || []).filter(m => !DB.deleted.includes(m.id)).concat(DB.meetings.filter(m => waiting.has(m.id) && !(b.meetings || []).some(x => x.id === m.id)));
+      // the late time is set by the admin and kept in the sheet (a change still waiting to send wins)
+      if (b.settings && !DB.queue.some(q => q.action === 'saveSetting')) { DB.settings = Object.assign({}, DB.settings, b.settings); showLateTime(); }
     }
     const r = await (await fetch(SCRIPT_URL + '?action=records' + (date ? '&date=' + date : ''))).json();
     if (r.ok) {
@@ -657,6 +670,8 @@ async function registerArrival(s) {
   const res = await send({ action: 'checkIn', record: rec });
   if (res && res.duplicate && res.record) { // another device recorded this staff earlier today
     DB.arrivals = DB.arrivals.filter(a => a.id !== rec.id).concat([res.record]); persist();
+  } else if (res && res.ok && res.status && res.status !== rec.status) { // the server's late time decides
+    rec.status = res.status; persist();
   }
   updateSyncLine();
 }
@@ -848,6 +863,16 @@ $('btnLogout').onclick = () => { adminOpen = false; sessionStorage.removeItem('n
 $('btnRefresh').onclick = async () => { const ok = await pullServer(); renderAdmin(); if (!ok && SCRIPT_URL) alertBox('Server not reachable', 'Showing what is saved on this device.'); };
 function alertBox(t, m) { showModal(failBox(t, m)); }
 
+$('btnSaveLate').onclick = async () => {
+  const v = $('setLate').value;
+  if (!/^\d{2}:\d{2}$/.test(v)) { $('setMsg').innerHTML = '<div class="notice bad">Choose a time.</div>'; return; }
+  DB.settings = Object.assign({}, DB.settings, { lateAfter: v }); persist(); showLateTime();
+  const res = await send({ action: 'saveSetting', key: 'lateAfter', value: v, adminPassword: ADMIN_PASSWORD });
+  $('setMsg').innerHTML = res && res.ok ? `<div class="notice ok">Saved. Arrival after ${fmtTime12(v + ':00')} is now Late on every device.</div>`
+    : res && res.error ? `<div class="notice bad">The server said: ${esc(res.error)}</div>`
+    : `<div class="notice info">Saved on this device. It will be sent to the Google Sheet when online.</div>`;
+  updateSyncLine();
+};
 $('btnAddMeeting').onclick = async () => {
   const name = $('mName').value.trim();
   if (!name) { $('eMeeting').textContent = 'Type the meeting name.'; return; }
@@ -972,7 +997,7 @@ $('btnExportM').onclick = () => {
 };
 document.querySelectorAll('#subnav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('#subnav button').forEach(x => x.classList.toggle('active', x === b));
-  ['meetings', 'arrivals', 'matt', 'staff', 'summary'].forEach(k => $('sub-' + k).classList.toggle('hidden', k !== b.dataset.sub));
+  ['meetings', 'arrivals', 'matt', 'staff', 'summary', 'settings'].forEach(k => $('sub-' + k).classList.toggle('hidden', k !== b.dataset.sub));
   if (b.dataset.sub === 'summary') pullServer().then(renderSummary);
 });
 
