@@ -127,6 +127,44 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(0,158,115,.7)}100%{box-shadow:0 0 0 18px rgba(0,158,115,0)}}
 .btn.pulse{animation:pulse 1s ease-out 3}
 
+/* full-screen face photo window */
+.camfull{position:fixed;inset:0;z-index:60;background:#0b2540;display:flex;flex-direction:column}
+.cfbar{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--dhis);border-bottom:6px solid var(--frame);color:#fff}
+.cfbar b{font-size:18px}
+.cfclose{background:rgba(255,255,255,.12);border:2px solid #fff;border-radius:12px;color:#fff;width:44px;height:44px;display:grid;place-items:center;padding:0}
+.cfstage{flex:1;min-height:0;position:relative}
+.camwrap.full{position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto;border:0;border-radius:0}
+.camwrap.full .camactions{display:none}
+.cfmsg{color:#fff;text-align:center;font-weight:700;font-size:16px;padding:12px 16px 4px;min-height:48px}
+.cfmsg.bad{color:#ffb38a}.cfmsg.good{color:#7ff0c8}
+.cfbtns{display:flex;justify-content:center;gap:10px;padding:6px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+
+/* attendance calendar */
+.calnav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 8px}
+.calnav b{font-size:17px}
+.calnav .btn{font-size:20px;padding:4px 14px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12.5px;color:var(--muted);font-weight:700;margin-bottom:8px}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+.c-ok{background:#009E73}.c-late{background:#F0E442}.c-abs{background:#D55E00}.c-off{background:#e3e9ef}
+.pgrid{display:grid;grid-template-columns:1fr;gap:10px}
+.pcard{display:block;width:100%;text-align:left;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px;color:var(--ink)}
+.pcard:hover{border-color:var(--dhis2)}
+.ptop{display:flex;align-items:center;gap:12px}
+.ptop img,.ptop .noimg{width:46px;height:46px;border-radius:50%;object-fit:cover;background:#f2f6fa;flex:0 0 auto}
+.ptop b{display:block;font-size:15.5px}
+.ptop small{color:var(--muted);font-size:12.5px}
+.pcount{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.pcount span{font-size:12px;font-weight:700;padding:3px 8px;border-radius:12px}
+.pcount .k-ok{background:#e3f5ee;color:#00694d}.pcount .k-late{background:#fbf7cf;color:#6b5f00}.pcount .k-abs{background:#fcebdf;color:#a54400}
+.strip{display:flex;gap:2px;margin-top:8px}
+.strip i{flex:1;height:10px;border-radius:2px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.cal .dh{font-size:11.5px;font-weight:700;color:var(--muted);text-align:center}
+.cal .d{aspect-ratio:1/1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:13px;line-height:1.1}
+.cal .d small{font-size:9.5px;font-weight:700;opacity:.9}
+.cal .d.ok{background:#009E73;color:#fff}.cal .d.late{background:#F0E442;color:#3b3400}.cal .d.abs{background:#D55E00;color:#fff}.cal .d.off{background:#eef2f6;color:#8aa0b5}.cal .d.blank{background:none}
+.cal .d.today{outline:2px solid var(--dhis3);outline-offset:1px}
+
 /* telephone with country code */
 .phone{display:flex;gap:8px}
 .ccbtn{display:flex;align-items:center;gap:7px;flex:0 0 auto;padding:0 10px;border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--ink);font-weight:700;font-size:15px}
@@ -147,6 +185,18 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
 .widget b{font-size:17px;font-weight:900;margin-top:4px}
 .widget small{font-size:12.5px;color:var(--muted);font-weight:700}
 .widget em{font-style:normal;font-size:12px;font-weight:700;color:var(--ok);min-height:0}
+.widget.wide{grid-column:1 / -1;flex-direction:row;justify-content:flex-start;gap:14px;padding:14px;text-align:left}
+.widget.wide .wtile{width:64px}
+#tab-home .widget.wide{padding:16px}
+#tab-home .widget.wide b{font-size:18px}
+.widget.wide .wtxt{display:flex;flex-direction:column}
+.widget.wide b{margin:0}
+.about h3{margin:16px 0 6px;font-size:16px;font-weight:900;color:var(--dhis3)}
+.about p,.about li{font-size:14.5px;line-height:1.55;color:var(--ink)}
+.about ol,.about ul{padding-left:20px;margin:6px 0}
+.about .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;font-size:14px}
+.about .kv span{color:var(--muted)}
+.about .copy{margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);text-align:center}
 .widget.off{opacity:.45;cursor:not-allowed;transform:none}
 #signinIntro .btn{margin-top:12px}
 
@@ -177,6 +227,7 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
     <button data-tab="home"><span class="mn" style="--c:#2c6693"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></svg></span><span>Home<small>Sign up or sign in</small></span></button>
     <button data-tab="register"><span class="mn" style="--c:#7b3fa0"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3-6 7-6s7 2 7 6M19 8v6M16 11h6"/></svg></span><span>Sign up<small>Register your face</small></span></button>
     <button data-tab="signin"><span class="mn" style="--c:#0b5f99"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="11" r="3"/><path d="M8 17c1-2 2.5-3 4-3s3 1 4 3"/></svg></span><span>Sign in<small>Attendance and meetings</small></span></button>
+    <button data-tab="about"><span class="mn" style="--c:#2c6693"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></span><span>About<small>How it works, model and developers</small></span></button>
     <button data-tab="admin"><span class="mn" style="--c:#D55E00"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/></svg></span><span>Admin<small>Meetings, records and summary</small></span></button>
   </nav>
 </header>
@@ -186,11 +237,59 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
   <section id="tab-home">
     <div class="card center">
       <h2>Welcome</h2>
-      <p class="muted" style="margin:0">New here? Sign up once with your face. Already registered? Sign in with your face.</p>
+      <p class="muted" style="margin:0">New here? Sign up once with your face.<br>Already registered? Sign in with your face.</p>
     </div>
     <div class="widgets">
-      <button class="widget" id="wSignUp" style="--c:#7b3fa0"><span class="wtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3-6 7-6s7 2 7 6M19 8v6M16 11h6"/></svg></span><b>Sign up</b><small>Register your face</small></button>
-      <button class="widget" id="wSignIn" style="--c:#0b5f99"><span class="wtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="11" r="3"/><path d="M8 17c1-2 2.5-3 4-3s3 1 4 3"/></svg></span><b>Sign in</b><small>Scan your face</small></button>
+      <button class="widget wide" id="wSignUp" style="--c:#7b3fa0"><span class="wtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="10" cy="8" r="4"/><path d="M3 21c0-4 3-6 7-6s7 2 7 6M19 8v6M16 11h6"/></svg></span><span class="wtxt"><b>Sign up</b><small>Register your face</small></span></button>
+      <button class="widget wide" id="wSignIn" style="--c:#0b5f99"><span class="wtile"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="11" r="3"/><path d="M8 17c1-2 2.5-3 4-3s3 1 4 3"/></svg></span><span class="wtxt"><b>Sign in</b><small>Scan your face</small></span></button>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section id="tab-about" class="hidden">
+    <div class="card about">
+      <h2>About this app</h2>
+      <p><b>Face Recognition Staff Attendance</b> records when NMCP staff arrive at the office and who attends meetings, using each person's face instead of a paper register or a sign in sheet.</p>
+
+      <h3>How it works</h3>
+      <ol>
+        <li><b>Sign up (once):</b> the person enters their name, organisation, designation, unit and telephone, then takes one face photo looking straight at the camera. The app takes the photo automatically when the face is inside the oval, well lit and still.</li>
+        <li><b>Sign in:</b> the person looks at the camera and presses Sign in. The app compares the face with everyone registered and shows their details and a match score.</li>
+        <li><b>Attendance (NMCP staff only):</b> records the arrival time. Arrivals after the time set by the administrator (now <b id="aboutLate"></b>) are recorded as Late.</li>
+        <li><b>Meeting (NMCP and partners):</b> the person chooses the meeting they are attending from the list the administrator keeps open.</li>
+        <li><b>Admin:</b> manages meetings and the late time, and views arrivals, meeting attendance, staff and summaries, with CSV export.</li>
+      </ol>
+      <p>Records are saved on the device first and sent to the programme's Google Sheet, so the app keeps working when the internet is weak and catches up when it returns.</p>
+
+      <h3>The face recognition model</h3>
+      <div class="kv">
+        <span>Library</span><b>face-api.js (version 1.7.15, maintained by Vladimir Mandic), running on TensorFlow.js in the browser</b>
+        <span>Face finder</span><b>Tiny Face Detector</b>
+        <span>Face alignment</span><b>68 point face landmark model</b>
+        <span>Recognition</span><b>ResNet-34 style network (the dlib face recognition model) that turns a face into 128 numbers</b>
+      </div>
+      <p>The face is processed on the device. What is stored for each person is the set of 128 numbers from three readings of the straight face, plus one small photo for display.</p>
+
+      <h3>Accuracy</h3>
+      <p>The recognition model scores 99.38% on the Labeled Faces in the Wild (LFW) benchmark, a standard test set of public photos. Accuracy in daily use is lower, because light, camera quality, head angle, glasses and caps all affect it. To reduce mistakes the app:</p>
+      <ul>
+        <li>accepts a sign in only when the match score is <b id="aboutScore"></b> or higher;</li>
+        <li>averages several readings for every scan and only uses a face inside the oval;</li>
+        <li>gives live tips on distance and light before a photo is taken.</li>
+      </ul>
+      <p>The app does not check that a live person is in front of the camera, so a printed photo could be used. Staff should sign in where they can be seen.</p>
+
+      <h3>Privacy</h3>
+      <p>Face data is personal biometric data. It is used only to record attendance for the National Malaria Control Programme (NMCP) and is kept in the programme's Google Sheet. The administrator can remove a person and their face data at any time.</p>
+
+      <h3>Developers</h3>
+      <p>Designed and developed by <b>Informatics Consultancy Firm – Sierra Leone (ICF-SL)</b> for the National Malaria Control Programme, Ministry of Health, Sierra Leone.<br>
+      10 Krootown Road, Freetown, Sierra Leone. Telephone +232 99 725620.</p>
+
+      <h3>Acknowledgements</h3>
+      <p>face-api.js (MIT licence); TensorFlow.js (Apache 2.0 licence); flag images from flagcdn.com; Roboto font (Google Fonts).</p>
+
+      <div class="copy">Copyright © <span id="aboutYear"></span> Informatics Consultancy Firm – Sierra Leone (ICF-SL). All rights reserved.</div>
     </div>
   </section>
 
@@ -198,7 +297,7 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
   <section id="tab-signin" class="hidden">
     <div class="card center" id="signinIntro">
       <h2>Sign in</h2>
-      <p class="muted" style="margin:0">Put your face in the circle and press Sign in on the camera.</p>
+      <p class="muted" style="margin:0">Put your face in the oval and press Sign in on the camera.</p>
       <button class="btn gold big scanBtn" id="btnSignIn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="11" r="3"/><path d="M8 17c1-2 2.5-3 4-3s3 1 4 3"/></svg>Sign in</button>
     </div>
     <div id="signedPanel" class="hidden">
@@ -236,22 +335,27 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
 
   <!-- shared camera -->
   <div class="card" id="camCard">
-    <div class="camwrap"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas><div class="facetip warn" id="faceTip">Place your face inside the circle</div><div class="countdown hidden" id="countdown"></div><div class="camactions" id="camActions"><button class="btn gold hidden" id="btnCamRetry" type="button">Try camera again</button></div></div>
+    <div class="camwrap"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas><div class="facetip warn" id="faceTip">Place your face inside the oval</div><div class="countdown hidden" id="countdown"></div><div class="camactions" id="camActions"><button class="btn gold hidden" id="btnCamRetry" type="button">Try camera again</button></div></div>
     <div class="camstatus" id="camStatus">Loading face recognition…</div>
     <ul class="tips">
       <li>Stand facing a window or a light so it shines on your face. Do not stand with the sun or a bright window behind you.</li>
       <li>Avoid strong direct sunlight on the face; shade or indoor light is best.</li>
       <li>Remove sunglasses, caps and face masks. Ordinary glasses are fine.</li>
-      <li>Hold the phone or stand at eye level, about an arm's length away, with your whole face inside the circle.</li>
-      <li>Look straight at the camera and keep still until the circle turns green.</li>
+      <li>Hold the phone or stand at eye level, about an arm's length away, with your whole face inside the oval.</li>
+      <li>Look straight at the camera and keep still until the oval turns green.</li>
     </ul>
   </div>
 
   <!-- Sign up: photos and Register, below the camera -->
   <div class="card hidden" id="regFinish">
     <h2>Face photo</h2>
-    <p class="muted" style="margin:0 0 4px">Look straight at the camera and press Capture photo. The app counts down 3, 2, 1, then takes the photo.</p>
+    <p class="muted" style="margin:0 0 4px">Press Take face photo. The camera opens full screen; put your face in the oval and look straight. The photo is taken automatically.</p>
     <div class="shots3" id="shots"></div>
+    <div class="center" style="margin-top:12px">
+    <button class="btn big scanBtn" id="btnCapture" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+      <span id="capLbl">Take face photo</span></button>
+    </div>
     <div class="row" style="margin-top:14px">
       <button class="btn gold big" id="btnSave" style="flex:1">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg>
@@ -259,9 +363,7 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
       <button class="btn light" id="btnClear">Clear</button>
     </div>
     <div id="regMsg"></div>
-    <button class="btn gold scanBtn" id="btnCapture" disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
-      <span id="capLbl">Capture photo</span></button>
+
   </div>
 
   <!-- Admin -->
@@ -272,6 +374,7 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
         <button data-sub="arrivals">Arrivals</button>
         <button data-sub="matt">Meeting attendance</button>
         <button data-sub="staff">Staff</button>
+        <button data-sub="calendar">Calendar</button>
         <button data-sub="summary">Summary</button>
         <button data-sub="settings">Settings</button>
       </div>
@@ -297,6 +400,15 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
         <div class="row"><input type="date" id="mDate" style="max-width:200px"><select id="mFilter" style="max-width:300px"></select><button class="btn light small" id="btnExportM">Export CSV</button></div>
         <div class="stats" id="mStats"></div>
         <div class="tablewrap"><table><thead><tr><th></th><th>Time</th><th>Name</th><th>Organisation</th><th>Designation</th><th>Meeting</th></tr></thead><tbody id="tbMatt"></tbody></table></div>
+      </div>
+
+      <div id="sub-calendar" class="hidden">
+        <h2>Staff attendance calendar</h2>
+        <div class="calnav"><button class="btn light small" id="calPrev" aria-label="Previous month">&lsaquo;</button><b id="calTitle"></b><button class="btn light small" id="calNext" aria-label="Next month">&rsaquo;</button></div>
+        <div class="legend"><span><i class="c-ok"></i>On time</span><span><i class="c-late"></i>Late</span><span><i class="c-abs"></i>Absent</span><span><i class="c-off"></i>Weekend, not yet due or before sign up</span></div>
+        <input id="calSearch" placeholder="Search staff" autocomplete="off" style="margin:4px 0 10px">
+        <div class="pgrid" id="calPeople"></div>
+        <p class="muted" style="font-size:12.5px;margin-top:10px">Absent means a working day (Monday to Friday) with no arrival, counted from the day the person signed up. Public holidays are not known to the app, so they show as absent.</p>
       </div>
 
       <div id="sub-settings" class="hidden">
@@ -333,6 +445,14 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
 <footer class="foot"><span class="f1">Face Recognition Staff Attendance <span style="margin:0 .45em">|</span> NMCP and Partners</span><span class="f2">Designed by Informatics Consultancy Firm – Sierra Leone (ICF-SL)</span></footer>
 <div class="frame" aria-hidden="true"></div>
 
+<!-- full-screen camera for the face photo -->
+<div class="camfull hidden" id="camFull" role="dialog" aria-label="Face photo">
+  <div class="cfbar"><b>Face photo</b><button class="cfclose" id="cfClose" aria-label="Close"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+  <div class="cfstage" id="cfStage"></div>
+  <div class="cfmsg" id="cfMsg">Look straight at the camera. The photo is taken automatically.</div>
+  <div class="cfbtns"><button class="btn gold hidden" id="cfRetry">Try again</button></div>
+</div>
+
 <!-- modals -->
 <div class="modal hidden" id="modal"><div class="box" id="modalBox"></div></div>
 
@@ -357,8 +477,12 @@ function persist() {
 /* ================= helpers ================= */
 const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2, '0');
-const today = (d = new Date()) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-const nowTime = (d = new Date()) => `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+/* All dates and times are GMT (Sierra Leone time), whatever the device's own time zone.
+   The device clock is corrected by the server's clock each time the app syncs. */
+let clockOffset = Number(localStorage.getItem('nmcpClockOffset') || 0) || 0;
+const now = () => new Date(Date.now() + clockOffset);
+const today = (d = now()) => `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+const nowTime = (d = now()) => `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function isLate(time) {
@@ -368,9 +492,10 @@ function isLate(time) {
 }
 function fmtTime12(t) { const [h, m] = t.split(':').map(Number); return `${((h + 11) % 12) + 1}:${pad(m)} ${h < 12 ? 'AM' : 'PM'}`; }
 const lateAfter = () => /^\d{2}:\d{2}$/.test((DB.settings || {}).lateAfter || '') ? DB.settings.lateAfter : DEFAULT_LATE_AFTER;
-function showLateTime() { $('lateLbl').textContent = fmtTime12(lateAfter() + ':00'); if ($('setLate')) $('setLate').value = lateAfter(); }
+function showLateTime() { $('lateLbl').textContent = fmtTime12(lateAfter() + ':00'); if ($('aboutLate')) $('aboutLate').textContent = fmtTime12(lateAfter() + ':00'); if ($('setLate')) $('setLate').value = lateAfter(); }
 showLateTime();
-const tickClock = () => { const d = new Date(); $('clock').textContent = d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) + '  •  ' + nowTime(d); };
+$('aboutScore').textContent = MATCH_SCORE + '%'; $('aboutYear').textContent = now().getUTCFullYear();
+const tickClock = () => { const d = now(); $('clock').textContent = d.toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }) + '  •  ' + nowTime(d) + ' GMT'; };
 tickClock(); setInterval(tickClock, 1000);
 
 /* ================= server sync ================= */
@@ -404,8 +529,13 @@ function mergeBy(localArr, remoteArr, key) {
 async function pullServer(date) {
   if (!SCRIPT_URL) return false;
   try {
+    const t0 = Date.now();
     const b = await (await fetch(SCRIPT_URL + '?action=bootstrap')).json();
     if (b.ok) {
+      if (b.serverNow) { // correct the device clock with the server's clock
+        clockOffset = Number(b.serverNow) - Math.round((t0 + Date.now()) / 2);
+        try { localStorage.setItem('nmcpClockOffset', String(clockOffset)); } catch (e) {}
+      }
       DB.staff = mergeBy(DB.staff, b.staff || [], 'staffId');
       // meetings are managed on the server, so its list wins (except edits still waiting in the queue)
       const waiting = new Set(DB.queue.filter(q => q.action === 'saveMeeting').map(q => q.meeting.id));
@@ -481,14 +611,21 @@ function setCam(msg, bad) { $('camStatus').textContent = msg; $('camStatus').sty
 $('btnCamRetry') && ($('btnCamRetry').onclick = () => { camError = ''; startCamera(); });
 function refreshButtons() { document.querySelectorAll('.scanBtn').forEach(b => b.disabled = !(modelsReady && camReady) || busy); }
 
-// circle guide: everything outside the circle is dimmed, and live tips help the person position their face
-let lastQuality = { ok: false, tip: 'Place your face inside the circle' };
+// oval guide: everything outside the oval is dimmed, and live tips help the person position their face
+let lastQuality = { ok: false, tip: 'Place your face inside the oval' };
 const probe = document.createElement('canvas'); probe.width = 160; probe.height = 120;
-function guideCircle(w, h) { return { cx: w / 2, cy: h * 0.45, r: Math.min(w, h) * 0.30 }; }
-function insideCircle(box, w, h) {
-  const c = guideCircle(w, h), fx = box.x + box.width / 2, fy = box.y + box.height / 2;
-  return Math.hypot(fx - c.cx, fy - c.cy) <= c.r * 0.45;
+// a large face-shaped oval, sized to the part of the video that is actually visible on screen
+function guideShape(w, h) {
+  const ew = video.clientWidth || w, eh = video.clientHeight || h;
+  const k = Math.max(ew / w, eh / h), visW = ew / k, visH = eh / k, y0 = (h - visH) / 2;
+  const ry = visH * 0.35, rx = Math.min(ry / 1.32, visW * 0.40);
+  return { cx: w / 2, cy: y0 + visH * 0.47, rx, ry };
 }
+function ovalDist(box, w, h) { // 0 at the centre of the oval, 1 on its edge
+  const c = guideShape(w, h), fx = box.x + box.width / 2, fy = box.y + box.height / 2;
+  return Math.sqrt(((fx - c.cx) / c.rx) ** 2 + ((fy - c.cy) / c.ry) ** 2);
+}
+function insideCircle(box, w, h) { return ovalDist(box, w, h) <= 0.45; }
 function lightLevels(box) {
   const g = probe.getContext('2d', { willReadFrequently: true });
   g.drawImage(video, 0, 0, 160, 120);
@@ -503,13 +640,13 @@ function lightLevels(box) {
   return { frame: all / (160 * 120), face: nf ? face / nf : 0 };
 }
 function judge(det) {
-  const w = video.videoWidth, h = video.videoHeight, c = guideCircle(w, h);
-  if (!det) return { ok: false, tip: 'Place your face inside the circle' };
-  const b = det.box, fx = b.x + b.width / 2, fy = b.y + b.height / 2;
-  if (Math.hypot(fx - c.cx, fy - c.cy) > c.r * 0.45) return { ok: false, tip: 'Move your face to the middle of the circle' };
-  const size = b.width / (2 * c.r);
-  if (size < 0.42) return { ok: false, tip: 'Come a little closer to the camera' };
-  if (size > 1.0) return { ok: false, tip: 'Move back a little' };
+  const w = video.videoWidth, h = video.videoHeight, c = guideShape(w, h);
+  if (!det) return { ok: false, tip: 'Place your face inside the oval' };
+  const b = det.box;
+  if (ovalDist(b, w, h) > 0.45) return { ok: false, tip: 'Move your face to the middle of the oval' };
+  const size = b.width / (2 * c.rx);
+  if (size < 0.55) return { ok: false, tip: 'Come closer so your face fills the oval' };
+  if (size > 1.1) return { ok: false, tip: 'Move back a little' };
   const L = lightLevels(b);
   if (L.face < 65) return { ok: false, tip: 'Too dark. Face a window or a light so it shines on your face' };
   if (L.face > 215) return { ok: false, tip: 'Too bright. Move out of direct sunlight' };
@@ -517,21 +654,21 @@ function judge(det) {
   return { ok: true, tip: 'Good. Hold still' };
 }
 function drawGuide(q) {
-  const ctx = overlay.getContext('2d'), w = overlay.width, h = overlay.height, c = guideCircle(w, h);
+  const ctx = overlay.getContext('2d'), w = overlay.width, h = overlay.height, c = guideShape(w, h);
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = 'rgba(11,37,64,.6)'; ctx.fillRect(0, 0, w, h);
   ctx.globalCompositeOperation = 'destination-out';
-  ctx.beginPath(); ctx.arc(c.cx, c.cy, c.r, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(c.cx, c.cy, c.rx, c.ry, 0, 0, Math.PI * 2); ctx.fill();
   ctx.globalCompositeOperation = 'source-over';
-  ctx.strokeStyle = q.ok ? '#009E73' : '#E69F00'; ctx.lineWidth = Math.max(4, w / 110);
-  ctx.setLineDash(q.ok ? [] : [18, 12]);
-  ctx.beginPath(); ctx.arc(c.cx, c.cy, c.r, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  ctx.strokeStyle = q.ok ? '#009E73' : '#E69F00'; ctx.lineWidth = Math.max(5, w / 90);
+  ctx.setLineDash(q.ok ? [] : [20, 12]);
+  ctx.beginPath(); ctx.ellipse(c.cx, c.cy, c.rx, c.ry, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
   const tip = $('faceTip'); tip.textContent = q.tip; tip.className = 'facetip ' + (q.ok ? 'good' : 'warn');
 }
 async function trackLoop() {
   while (true) {
     await new Promise(r => setTimeout(r, 220));
-    if (!camReady || $('camCard').classList.contains('hidden') || busy || document.hidden) continue;
+    if (!camReady || ($('camCard').classList.contains('hidden') && !fullOpen) || busy || document.hidden) continue;
     if (overlay.width !== video.videoWidth || overlay.height !== video.videoHeight) { overlay.width = video.videoWidth; overlay.height = video.videoHeight; }
     if (!modelsReady) { drawGuide({ ok: false, tip: 'Getting ready…' }); continue; }
     try {
@@ -586,11 +723,11 @@ async function identify() {
   if (!matcher.length) { showModal(failBox('No staff registered yet', 'Register staff first in the Register tab.')); return null; }
   setCam('Hold still, reading your face…');
   const f = await readFace(3);
-  if (!f) { setCam('Ready. Look at the camera.'); showModal(failBox('No face found in the circle', lastQuality.ok ? 'Keep your face inside the circle and hold still, then scan again.' : lastQuality.tip + '.')); return null; }
+  if (!f) { setCam('Ready. Look at the camera.'); showModal(failBox('No face found in the oval', lastQuality.ok ? 'Keep your face inside the oval and hold still, then scan again.' : lastQuality.tip + '.')); return null; }
   const m = bestMatch(f.descriptor);
   setCam('Ready. Look at the camera.');
   if (!passes(m)) {
-    showModal(failBox('Face not recognised', 'The match score is below ' + MATCH_SCORE + '%. Check the light and keep your face in the circle, then scan again. If you are not registered, please register or see the administrator.')
+    showModal(failBox('Face not recognised', 'The match score is below ' + MATCH_SCORE + '%. Check the light and keep your face in the oval, then scan again. If you are not registered, please register or see the administrator.')
       .replace('<button', (m ? scoreLine(m.score) : '') + '<button'));
     return null;
   }
@@ -659,7 +796,7 @@ $('wAttendance').onclick = () => {
   registerArrival(s);
 };
 async function registerArrival(s) {
-  const d = new Date(), date = today(d), time = nowTime(d);
+  const d = now(), date = today(d), time = nowTime(d);
   if (DB.arrivals.some(a => a.staffId === s.staffId && a.date === date)) return;
   const status = isLate(time) ? 'Late' : 'On time';
   const rec = { id: uid(), date, time, status, staffId: s.staffId, phone: s.phone, name: s.name, designation: s.designation, unit: s.unit, org: s.org || 'NMCP', deviceTime: d.toISOString(), updatedAt: d.toISOString() };
@@ -668,6 +805,11 @@ async function registerArrival(s) {
     <p class="muted">Arrival recorded at <b>${fmtTime12(time)}</b></p><button class="btn" onclick="finishSession()">Done</button>`);
   setTimeout(() => { if ($('modalBox').innerHTML.includes('Arrival recorded')) finishSession(); }, 6000);
   const res = await send({ action: 'checkIn', record: rec });
+  if (res && res.error) { // the server refused it, for example a date that is not today (GMT)
+    DB.arrivals = DB.arrivals.filter(a => a.id !== rec.id); persist();
+    showModal(failBox('Arrival not recorded', res.error)); updateSyncLine(); return;
+  }
+  if (res && res.ok && res.record) { const i = DB.arrivals.findIndex(a => a.id === rec.id); if (i >= 0 && !res.duplicate) { DB.arrivals[i] = Object.assign(DB.arrivals[i], res.record); persist(); } }
   if (res && res.duplicate && res.record) { // another device recorded this staff earlier today
     DB.arrivals = DB.arrivals.filter(a => a.id !== rec.id).concat([res.record]); persist();
   } else if (res && res.ok && res.status && res.status !== rec.status) { // the server's late time decides
@@ -690,14 +832,17 @@ $('wMeeting').onclick = () => {
     armSessionTimer();
     const mid = $('selMeeting').value;
     if (!mid) { $('eSel').textContent = 'Please choose a meeting.'; return; }
-    const m = DB.meetings.find(x => x.id === mid), d = new Date(), date = today(d), time = nowTime(d);
+    const m = DB.meetings.find(x => x.id === mid), d = now(), date = today(d), time = nowTime(d);
     const prev = DB.meetAtt.find(a => a.staffId === s.staffId && a.meetingId === mid && a.date === date);
     if (prev) { showModal(staffDetails(s) + `<div class="status" style="color:var(--navy)">Already recorded</div><p class="muted">You signed in to <b>${esc(m.name)}</b> at ${fmtTime12(prev.time)}.</p><button class="btn" onclick="finishSession()">Done</button>`); return; }
     const rec = { id: uid(), date, time, meetingId: mid, meetingName: m.name, staffId: s.staffId, phone: s.phone, name: s.name, designation: s.designation, unit: s.unit, org: s.org || 'NMCP', deviceTime: d.toISOString(), updatedAt: d.toISOString() };
     DB.meetAtt.push(rec); persist();
     showModal(staffDetails(s) + `<div class="status" style="color:var(--ok)">Attendance recorded</div><p class="muted"><b>${esc(m.name)}</b><br>${fmtTime12(time)}</p><button class="btn" onclick="finishSession()">Done</button>`);
     setTimeout(() => { if ($('modalBox').innerHTML.includes('Attendance recorded')) finishSession(); }, 6000);
-    await send({ action: 'meetingCheckIn', record: rec }); updateSyncLine();
+    const res = await send({ action: 'meetingCheckIn', record: rec });
+    if (res && res.error) { DB.meetAtt = DB.meetAtt.filter(a => a.id !== rec.id); persist(); showModal(failBox('Meeting attendance not recorded', res.error)); }
+    else if (res && res.ok && res.record && !res.duplicate) { const i = DB.meetAtt.findIndex(a => a.id === rec.id); if (i >= 0) { DB.meetAtt[i] = Object.assign(DB.meetAtt[i], res.record); persist(); } }
+    updateSyncLine();
   };
 };
 
@@ -720,42 +865,71 @@ function say(text) {
 }
 function capturePrompt() {
   const done = captured.length >= READINGS;
-  $('capLbl').textContent = done ? 'Photo taken' : 'Capture photo';
-  if (!busy && currentTab === 'register' && camReady && modelsReady && !camError && !modelError)
-    setCam(done ? 'Photo taken. Press Register below.' : 'Look straight at the camera, then press Capture photo.');
+  $('capLbl').textContent = done ? 'Retake face photo' : 'Take face photo';
 }
 const wait = ms => new Promise(r => setTimeout(r, ms));
-async function countdown(text) {
-  const el = $('countdown'); el.classList.remove('hidden'); $('faceTip').style.visibility = 'hidden';
-  for (let i = 3; i >= 1; i--) { el.innerHTML = `<b>${i}</b><span>${esc(text)}</span>`; await wait(1000); }
-  el.classList.add('hidden'); $('faceTip').style.visibility = '';
+let fullOpen = false, autoStop = false;
+function cfMsg(text, kind) { $('cfMsg').textContent = text; $('cfMsg').className = 'cfmsg ' + (kind || ''); }
+function openFull() {
+  const cw = document.querySelector('.camwrap');
+  cw.classList.add('full'); $('cfStage').appendChild(cw);
+  $('camFull').classList.remove('hidden'); document.body.style.overflow = 'hidden'; fullOpen = true;
 }
-$('btnCapture').onclick = async () => {
-  if (captured.length >= READINGS) { goToRegister(); return; }
-  busy = true; refreshButtons(); captured = []; drawShots();
-  try {
-    setCam('Look straight at the camera'); say('Look straight at the camera.');
-    await countdown('Look straight');
-    setCam('Hold still…');
-    const got = [];
-    for (let k = 0; k < READINGS; k++) {
-      const f = await readFace(2);
-      if (!f) break;
-      got.push(f); await wait(250);
-    }
-    if (got.length < READINGS) {
-      const why = lastQuality.ok ? 'Keep your face inside the circle and hold still' : lastQuality.tip;
-      setCam(`The photo was not taken. ${why}, then press Capture photo again.`, true); say(`The photo was not taken. ${why}.`); return;
-    }
-    // stop the same face being registered twice
-    const m = bestMatch(got[0].descriptor);
-    if (passes(m) && m.staff.staffId !== 'TEL-' + cc.code + nationalNumber()) { toastNotice(`This face is already registered as ${m.staff.name}.`, 'bad'); say('This face is already registered.'); return; }
-    captured = got; drawShots();
-    toastNotice('Photo taken. Press Register.', 'ok');
-    say('Photo taken. Please press Register.');
-    goToRegister();
-  } finally { busy = false; refreshButtons(); capturePrompt(); }
+function closeFull() {
+  autoStop = true; fullOpen = false; busy = false;
+  const cw = document.querySelector('.camwrap');
+  cw.classList.remove('full'); $('camCard').insertBefore(cw, $('camStatus'));
+  $('camFull').classList.add('hidden'); document.body.style.overflow = ''; $('cfRetry').classList.add('hidden');
+  refreshButtons(); capturePrompt();
+}
+$('cfClose').onclick = () => { try { speechSynthesis.cancel(); } catch (e) {} closeFull(); };
+$('cfRetry').onclick = () => autoCapture();
+$('btnCapture').onclick = () => {
+  if (!camReady || !modelsReady) { toastNotice(camError || modelError || 'The camera or face recognition is still starting. Please wait a moment.', 'bad'); if (!camReady) startCamera(); return; }
+  openFull(); autoCapture();
 };
+// waits until the face is inside the oval, well lit and still, then takes the photo by itself
+async function autoCapture() {
+  autoStop = false; captured = []; drawShots(); $('cfRetry').classList.add('hidden');
+  cfMsg('Look straight at the camera. The photo is taken automatically.');
+  say('Look straight at the camera and hold still.');
+  const start = Date.now(); let goodSince = 0, lastTip = '', tipSince = Date.now(), lastSpoken = Date.now();
+  while (!autoStop) {
+    await wait(200);
+    if (autoStop) return;
+    if (Date.now() - start > 60000) {
+      cfMsg('No clear photo yet. ' + lastQuality.tip + '.', 'bad'); say('No clear photo yet. ' + lastQuality.tip + '.');
+      $('cfRetry').classList.remove('hidden'); return;
+    }
+    if (lastQuality.ok) {
+      if (!goodSince) { goodSince = Date.now(); cfMsg('Good. Hold still…', 'good'); }
+      if (Date.now() - goodSince < 1200) continue;
+      // steady for a moment: take three quick readings of the straight face
+      busy = true; cfMsg('Taking the photo. Hold still…', 'good');
+      const got = [];
+      for (let k = 0; k < READINGS; k++) { const f = await readFace(2); if (!f) break; got.push(f); await wait(200); }
+      busy = false;
+      if (autoStop) return;
+      if (got.length < READINGS) { goodSince = 0; cfMsg('Keep still inside the oval…'); continue; }
+      const m = bestMatch(got[0].descriptor);
+      if (passes(m) && m.staff.staffId !== 'TEL-' + cc.code + nationalNumber()) {
+        cfMsg(`This face is already registered as ${m.staff.name}.`, 'bad'); say('This face is already registered.');
+        $('cfRetry').classList.remove('hidden'); return;
+      }
+      captured = got; drawShots();
+      cfMsg('Photo taken.', 'good'); say('Photo taken. Please press Register.');
+      await wait(1100);
+      if (autoStop) return;
+      closeFull(); toastNotice('Photo taken. Press Register.', 'ok'); goToRegister();
+      return;
+    }
+    goodSince = 0;
+    cfMsg(lastQuality.tip);
+    // speak the tip if the same problem lasts a few seconds
+    if (lastQuality.tip !== lastTip) { lastTip = lastQuality.tip; tipSince = Date.now(); }
+    else if (Date.now() - tipSince > 2500 && Date.now() - lastSpoken > 6000) { say(lastQuality.tip); lastSpoken = Date.now(); }
+  }
+}
 function goToRegister() {
   $('btnSave').scrollIntoView({ behavior: 'smooth', block: 'center' });
   $('btnSave').classList.remove('pulse'); void $('btnSave').offsetWidth; $('btnSave').classList.add('pulse');
@@ -823,7 +997,7 @@ $('btnSave').onclick = async () => {
   ok &= fieldErr('ePhone', phoneError());
   ok &= fieldErr('eEmail', !v('rEmail') || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v('rEmail')) ? '' : 'Wrong entry: check the email address.');
   if (!ok) return;
-  if (captured.length < READINGS) { toastNotice('Take your photo with the Capture photo button before you register.', 'bad'); return; }
+  if (captured.length < READINGS) { toastNotice('Press Take face photo first, then Register.', 'bad'); return; }
   const phone = fullPhone(), newId = 'TEL-' + phoneDigits(phone); // internal key, not shown
   if (DB.staff.some(s => phoneDigits(s.phone) === phoneDigits(phone) || s.staffId === newId)) { fieldErr('ePhone', 'This telephone number is already registered. The administrator can remove it first to register again.'); return; }
   const t = new Date().toISOString();
@@ -969,7 +1143,66 @@ function renderSummary() {
   $('tbSumMeet').innerHTML = d.meets.length ? d.meets.map(m => `<tr><td><b>${esc(m.meeting)}</b></td><td>${esc(m.date)}</td><td>${m.names.length}</td><td>${esc(m.names.sort().join(', '))}</td></tr>`).join('')
     : '<tr><td colspan="4" class="muted">No meeting attendance in this period.</td></tr>';
 }
-function renderAdmin() { renderMeetings(); renderArrivals(); renderMatt(); renderStaff(); renderSummary(); }
+/* ---------- attendance calendar ---------- */
+let calMonth = (() => { const d = now(); return new Date(d.getUTCFullYear(), d.getUTCMonth(), 1); })(); // a plain month (year and month only)
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+// status of one person on one day: ok, late, abs, or off (weekend, future, before sign up, or today with no arrival yet)
+function dayStatus(st, dateStr, byDate) {
+  const wd = new Date(dateStr + 'T00:00:00Z').getUTCDay(), todayStr = today();
+  const rec = byDate[dateStr];
+  if (rec) return { cls: rec.status === 'Late' ? 'late' : 'ok', rec };
+  const joined = String(st.registeredAt || '').slice(0, 10);
+  if (wd === 0 || wd === 6 || dateStr > todayStr || (joined && dateStr < joined)) return { cls: 'off' };
+  if (dateStr === todayStr) return { cls: 'off' }; // the day is not over yet
+  return { cls: 'abs' };
+}
+function monthDays() {
+  const y = calMonth.getFullYear(), m = calMonth.getMonth(), n = new Date(y, m + 1, 0).getDate();
+  return Array.from({ length: n }, (_, i) => ymd(new Date(y, m, i + 1)));
+}
+function personMonth(st) {
+  const byDate = {};
+  DB.arrivals.filter(a => a.staffId === st.staffId).forEach(a => { byDate[a.date] = a; });
+  const days = monthDays().map(ds => Object.assign({ date: ds }, dayStatus(st, ds, byDate)));
+  const c = { ok: 0, late: 0, abs: 0 };
+  days.forEach(x => { if (c[x.cls] !== undefined) c[x.cls]++; });
+  return { days, c };
+}
+function renderCalendar() {
+  $('calTitle').textContent = calMonth.toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+  const q = $('calSearch').value.trim().toLowerCase();
+  const people = DB.staff.filter(isNMCP).filter(st => !q || st.name.toLowerCase().includes(q) || String(st.unit || '').toLowerCase().includes(q))
+    .sort((a, b) => a.name.localeCompare(b.name));
+  $('calPeople').innerHTML = people.length ? people.map(st => {
+    const pm = personMonth(st);
+    return `<button class="pcard" data-id="${esc(st.staffId)}"><div class="ptop">${st.photo ? `<img src="${esc(st.photo)}" alt="">` : '<span class="noimg"></span>'}
+      <div><b>${esc(st.name)}</b><small>${esc(st.designation || '')}${st.unit ? ', ' + esc(st.unit) : ''}</small></div></div>
+      <div class="pcount"><span class="k-ok">On time ${pm.c.ok}</span><span class="k-late">Late ${pm.c.late}</span><span class="k-abs">Absent ${pm.c.abs}</span></div>
+      <div class="strip">${pm.days.map(x => `<i class="c-${x.cls === 'ok' ? 'ok' : x.cls === 'late' ? 'late' : x.cls === 'abs' ? 'abs' : 'off'}" title="${x.date}"></i>`).join('')}</div></button>`;
+  }).join('') : '<p class="muted">No NMCP staff registered yet.</p>';
+}
+function openPersonCalendar(id) {
+  const st = DB.staff.find(x => x.staffId === id); if (!st) return;
+  const pm = personMonth(st), first = new Date(calMonth.getFullYear(), calMonth.getMonth(), 1);
+  const lead = (first.getDay() + 6) % 7; // Monday first
+  const cells = Array.from({ length: lead }, () => '<div class="d blank"></div>').concat(pm.days.map(x => {
+    const day = Number(x.date.slice(8));
+    const sub = x.rec ? fmtTime12(x.rec.time).replace(' ', '') : x.cls === 'abs' ? 'Absent' : '';
+    return `<div class="d ${x.cls}${x.date === today() ? ' today' : ''}" title="${x.date}">${day}${sub ? `<small>${sub}</small>` : ''}</div>`;
+  }));
+  showModal(`<div class="ptop" style="justify-content:center;text-align:left">${st.photo ? `<img src="${esc(st.photo)}" alt="">` : ''}<div><b>${esc(st.name)}</b><small>${esc(st.designation || '')}${st.unit ? ', ' + esc(st.unit) : ''}</small></div></div>
+    <div style="margin-top:10px;font-weight:900">${esc($('calTitle').textContent)}</div>
+    <div class="pcount" style="justify-content:center"><span class="k-ok">On time ${pm.c.ok}</span><span class="k-late">Late ${pm.c.late}</span><span class="k-abs">Absent ${pm.c.abs}</span></div>
+    <div class="cal">${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => `<div class="dh">${d}</div>`).join('')}${cells.join('')}</div>
+    <div class="legend" style="justify-content:center;margin-top:10px"><span><i class="c-ok"></i>On time</span><span><i class="c-late"></i>Late</span><span><i class="c-abs"></i>Absent</span></div>
+    <button class="btn" onclick="closeModal()">Close</button>`);
+}
+$('calPeople').onclick = e => { const c = e.target.closest('.pcard'); if (c) openPersonCalendar(c.dataset.id); };
+$('calPrev').onclick = () => { calMonth.setMonth(calMonth.getMonth() - 1); renderCalendar(); };
+$('calNext').onclick = () => { calMonth.setMonth(calMonth.getMonth() + 1); renderCalendar(); };
+$('calSearch').oninput = renderCalendar;
+
+function renderAdmin() { renderMeetings(); renderArrivals(); renderMatt(); renderStaff(); renderSummary(); renderCalendar(); }
 $('sFrom').onchange = $('sTo').onchange = renderSummary;
 $('btnExportSO').onclick = () => { const d = summaryData();
   downloadCSV(`office_attendance_summary_${$('sFrom').value}_to_${$('sTo').value}.csv`, ['Full Name', 'Unit', 'Days present', 'Working days', 'On time', 'Late', 'On time %', 'Meetings attended'],
@@ -997,8 +1230,9 @@ $('btnExportM').onclick = () => {
 };
 document.querySelectorAll('#subnav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('#subnav button').forEach(x => x.classList.toggle('active', x === b));
-  ['meetings', 'arrivals', 'matt', 'staff', 'summary', 'settings'].forEach(k => $('sub-' + k).classList.toggle('hidden', k !== b.dataset.sub));
+  ['meetings', 'arrivals', 'matt', 'staff', 'calendar', 'summary', 'settings'].forEach(k => $('sub-' + k).classList.toggle('hidden', k !== b.dataset.sub));
   if (b.dataset.sub === 'summary') pullServer().then(renderSummary);
+  if (b.dataset.sub === 'calendar') { renderCalendar(); pullServer().then(renderCalendar); }
 });
 
 /* ================= tabs ================= */
@@ -1007,8 +1241,9 @@ function switchTab(tab) {
   currentTab = tab;
   if (tab !== 'signin' && session) { session = null; clearTimeout(sessionTimer); $('signedPanel').classList.add('hidden'); $('signinIntro').classList.remove('hidden'); }
   document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
-  ['home', 'signin', 'register', 'admin'].forEach(k => $('tab-' + k).classList.toggle('hidden', k !== tab));
-  $('camCard').classList.toggle('hidden', !(tab === 'register' || (tab === 'signin' && !session)));
+  ['home', 'signin', 'register', 'admin', 'about'].forEach(k => $('tab-' + k).classList.toggle('hidden', k !== tab));
+  $('syncLine').classList.toggle('hidden', tab !== 'admin'); // sync status only for the administrator
+  $('camCard').classList.toggle('hidden', !(tab === 'signin' && !session)); // sign up uses the full-screen camera
   showCamButton(tab);
   if ((tab === 'register' || tab === 'signin') && !camReady) startCamera();
   $('regFinish').classList.toggle('hidden', tab !== 'register');
@@ -1029,7 +1264,7 @@ document.addEventListener('click', e => { if (!e.target.closest('#nav') && !e.ta
 $('modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
 
 /* ================= start ================= */
-const CAM_BTN = { signin: 'btnSignIn', register: 'btnCapture' };
+const CAM_BTN = { signin: 'btnSignIn' };
 Object.values(CAM_BTN).forEach(id => $('camActions').appendChild($(id)));
 function showCamButton(tab) { Object.entries(CAM_BTN).forEach(([t, id]) => $(id).classList.toggle('hidden', t !== tab)); }
 switchTab('home');
