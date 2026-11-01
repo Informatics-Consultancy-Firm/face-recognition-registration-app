@@ -211,6 +211,7 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
 .modal .status{font-size:22px;font-weight:900;margin:6px 0}
 
 @media (max-width:480px){
+  .camwrap{aspect-ratio:3/4}
   .grid2{grid-template-columns:1fr}
   .camactions{bottom:8px}.camactions .btn{padding:8px 14px;font-size:14px}
   .facetip{top:6px;font-size:12.5px;padding:6px 12px}
@@ -587,7 +588,7 @@ async function startCamera() {
   }
   camStarting = true; setCam('Starting camera…');
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }, audio: false });
+    const stream = await navigator.mediaDevices.getUserMedia({ video: Object.assign({ facingMode: 'user' }, matchMedia('(max-width:480px)').matches ? { width: { ideal: 480 }, height: { ideal: 640 }, aspectRatio: { ideal: 0.75 } } : { width: { ideal: 640 }, height: { ideal: 480 } }), audio: false });
     video.srcObject = stream; await video.play(); camReady = true; camError = ''; refreshButtons(); showRetry(false);
     showReady();
     if (!loopOn) { loopOn = true; trackLoop(); }
@@ -618,8 +619,8 @@ const probe = document.createElement('canvas'); probe.width = 160; probe.height 
 function guideShape(w, h) {
   const ew = video.clientWidth || w, eh = video.clientHeight || h;
   const k = Math.max(ew / w, eh / h), visW = ew / k, visH = eh / k, y0 = (h - visH) / 2;
-  const ry = visH * 0.35, rx = Math.min(ry / 1.32, visW * 0.40);
-  return { cx: w / 2, cy: y0 + visH * 0.47, rx, ry };
+  const ry = visH * 0.38, rx = Math.min(ry / 1.30, visW * 0.44);
+  return { cx: w / 2, cy: y0 + visH * 0.49, rx, ry };
 }
 function ovalDist(box, w, h) { // 0 at the centre of the oval, 1 on its edge
   const c = guideShape(w, h), fx = box.x + box.width / 2, fy = box.y + box.height / 2;
