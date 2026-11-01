@@ -329,7 +329,7 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
 
 <script>
 /* ================= settings ================= */
-const SCRIPT_URL = '';                 // paste the Apps Script web app /exec URL here
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwbp4anCrRWd5awuNpSB5e_JYep_JVprKOUYiZ-RWwCa7kcDY-e6YgeEwM90juyOOc4/exec';   // Apps Script web app (FaceAttendance.gs)
 const ADMIN_PASSWORD = 'admin123';     // opens the Admin tab
 const LATE_AFTER = '09:00';            // arrival after this time is Late
 const MATCH_SCORE = 85;                // minimum match score (%) before the Register button is shown
@@ -649,7 +649,7 @@ async function registerArrival(s) {
   const d = new Date(), date = today(d), time = nowTime(d);
   if (DB.arrivals.some(a => a.staffId === s.staffId && a.date === date)) return;
   const status = isLate(time) ? 'Late' : 'On time';
-  const rec = { id: uid(), date, time, status, staffId: s.staffId, name: s.name, designation: s.designation, unit: s.unit, org: s.org || 'NMCP', deviceTime: d.toISOString(), updatedAt: d.toISOString() };
+  const rec = { id: uid(), date, time, status, staffId: s.staffId, phone: s.phone, name: s.name, designation: s.designation, unit: s.unit, org: s.org || 'NMCP', deviceTime: d.toISOString(), updatedAt: d.toISOString() };
   DB.arrivals.push(rec); persist();
   showModal(staffDetails(s) + `<div class="status" style="color:${status === 'Late' ? 'var(--late)' : 'var(--ok)'}">${status === 'Late' ? 'Late arrival' : 'Welcome, you are on time'}</div>
     <p class="muted">Arrival recorded at <b>${fmtTime12(time)}</b></p><button class="btn" onclick="finishSession()">Done</button>`);
@@ -678,7 +678,7 @@ $('wMeeting').onclick = () => {
     const m = DB.meetings.find(x => x.id === mid), d = new Date(), date = today(d), time = nowTime(d);
     const prev = DB.meetAtt.find(a => a.staffId === s.staffId && a.meetingId === mid && a.date === date);
     if (prev) { showModal(staffDetails(s) + `<div class="status" style="color:var(--navy)">Already recorded</div><p class="muted">You signed in to <b>${esc(m.name)}</b> at ${fmtTime12(prev.time)}.</p><button class="btn" onclick="finishSession()">Done</button>`); return; }
-    const rec = { id: uid(), date, time, meetingId: mid, meetingName: m.name, staffId: s.staffId, name: s.name, designation: s.designation, unit: s.unit, org: s.org || 'NMCP', deviceTime: d.toISOString(), updatedAt: d.toISOString() };
+    const rec = { id: uid(), date, time, meetingId: mid, meetingName: m.name, staffId: s.staffId, phone: s.phone, name: s.name, designation: s.designation, unit: s.unit, org: s.org || 'NMCP', deviceTime: d.toISOString(), updatedAt: d.toISOString() };
     DB.meetAtt.push(rec); persist();
     showModal(staffDetails(s) + `<div class="status" style="color:var(--ok)">Attendance recorded</div><p class="muted"><b>${esc(m.name)}</b><br>${fmtTime12(time)}</p><button class="btn" onclick="finishSession()">Done</button>`);
     setTimeout(() => { if ($('modalBox').innerHTML.includes('Attendance recorded')) finishSession(); }, 6000);
@@ -878,7 +878,7 @@ async function deleteStaff(staffId) {
     <div class="row" style="justify-content:center"><button class="btn danger" id="btnDelS">Remove</button><button class="btn light" onclick="closeModal()">Cancel</button></div>`);
   $('btnDelS').onclick = async () => {
     DB.staff = DB.staff.filter(x => x.staffId !== staffId); DB.deleted.push(staffId); persist(); rebuildMatcher(); closeModal(); renderStaff();
-    await send({ action: 'deleteStaff', staffId, adminPassword: ADMIN_PASSWORD }); updateSyncLine();
+    await send({ action: 'deleteStaff', staffId, phone: s.phone, adminPassword: ADMIN_PASSWORD }); updateSyncLine();
   };
 }
 
