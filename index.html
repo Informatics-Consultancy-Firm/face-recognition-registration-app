@@ -254,7 +254,7 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
 
       <h3>How it works</h3>
       <ol>
-        <li><b>Sign up (once):</b> the person enters their name, organisation, designation, unit and telephone, then takes one face photo looking straight at the camera. The app takes the photo automatically when the face is inside the oval, well lit and still.</li>
+        <li><b>Sign up (once):</b> the person enters their name, organisation, designation, unit and telephone, then takes one face photo looking straight at the camera. The app finds the face anywhere in the camera picture and takes the photo automatically.</li>
         <li><b>Sign in:</b> the person looks at the camera and presses Sign in. The app compares the face with everyone registered and shows their details and a match score.</li>
         <li><b>Attendance (NMCP staff only):</b> records the arrival time. Arrivals after the time set by the administrator (now <b id="aboutLate"></b>) are recorded as Late.</li>
         <li><b>Meeting (NMCP and partners):</b> the person chooses the meeting they are attending from the list the administrator keeps open.</li>
@@ -275,7 +275,7 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
       <p>The recognition model scores 99.38% on the Labeled Faces in the Wild (LFW) benchmark, a standard test set of public photos. Accuracy in daily use is lower, because light, camera quality, head angle, glasses and caps all affect it. To reduce mistakes the app:</p>
       <ul>
         <li>accepts a sign in only when the match score is <b id="aboutScore"></b> or higher;</li>
-        <li>averages several readings for every scan and only uses a face inside the oval;</li>
+        <li>averages several readings for every scan;</li>
         <li>gives live tips on distance and light before a photo is taken.</li>
       </ul>
       <p>The app does not check that a live person is in front of the camera, so a printed photo could be used. Staff should sign in where they can be seen.</p>
@@ -298,7 +298,7 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
   <section id="tab-signin" class="hidden">
     <div class="card center" id="signinIntro">
       <h2>Sign in</h2>
-      <p class="muted" style="margin:0">Put your face in the oval and press Sign in on the camera.</p>
+      <p class="muted" style="margin:0">Look at the camera and press Sign in.</p>
       <button class="btn gold big scanBtn" id="btnSignIn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><circle cx="12" cy="11" r="3"/><path d="M8 17c1-2 2.5-3 4-3s3 1 4 3"/></svg>Sign in</button>
     </div>
     <div id="signedPanel" class="hidden">
@@ -336,21 +336,21 @@ td img.av{width:38px;height:38px;border-radius:50%;object-fit:cover}
 
   <!-- shared camera -->
   <div class="card" id="camCard">
-    <div class="camwrap"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas><div class="facetip warn" id="faceTip">Place your face inside the oval</div><div class="countdown hidden" id="countdown"></div><div class="camactions" id="camActions"><button class="btn gold hidden" id="btnCamRetry" type="button">Try camera again</button></div></div>
+    <div class="camwrap"><video id="video" autoplay muted playsinline></video><canvas id="overlay"></canvas><div class="facetip warn" id="faceTip">Look at the camera</div><div class="countdown hidden" id="countdown"></div><div class="camactions" id="camActions"><button class="btn gold hidden" id="btnCamRetry" type="button">Try camera again</button></div></div>
     <div class="camstatus" id="camStatus">Loading face recognition…</div>
     <ul class="tips">
       <li>Stand facing a window or a light so it shines on your face. Do not stand with the sun or a bright window behind you.</li>
       <li>Avoid strong direct sunlight on the face; shade or indoor light is best.</li>
       <li>Remove sunglasses, caps and face masks. Ordinary glasses are fine.</li>
-      <li>Hold the phone or stand at eye level, about an arm's length away, with your whole face inside the oval.</li>
-      <li>Look straight at the camera and keep still until the oval turns green.</li>
+      <li>Hold the phone or stand at eye level, about an arm's length away, so your whole face is in the picture.</li>
+      <li>Look straight at the camera and keep still until the box round your face turns green.</li>
     </ul>
   </div>
 
   <!-- Sign up: photos and Register, below the camera -->
   <div class="card hidden" id="regFinish">
     <h2>Face photo</h2>
-    <p class="muted" style="margin:0 0 4px">Press Take face photo. The camera opens full screen; put your face in the oval and look straight. The photo is taken automatically.</p>
+    <p class="muted" style="margin:0 0 4px">Press Take face photo. The camera opens full screen; look straight at it. The photo is taken automatically.</p>
     <div class="shots3" id="shots"></div>
     <div class="center" style="margin-top:12px">
     <button class="btn big scanBtn" id="btnCapture" disabled>
@@ -567,7 +567,7 @@ setInterval(flushQueue, 60000);
 /* ================= face engine ================= */
 const video = $('video'), overlay = $('overlay');
 let modelsReady = false, camReady = false, busy = false, matcher = [];
-const detOpts = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 });
+const detOpts = () => new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.4 }); // a little more forgiving in poor light
 
 async function loadModels() {
   if (typeof faceapi === 'undefined') { modelError = 'Face recognition could not load. Check the internet connection, then reload the page.'; setCam(modelError, true); return; }
@@ -612,21 +612,14 @@ function setCam(msg, bad) { $('camStatus').textContent = msg; $('camStatus').sty
 $('btnCamRetry') && ($('btnCamRetry').onclick = () => { camError = ''; startCamera(); });
 function refreshButtons() { document.querySelectorAll('.scanBtn').forEach(b => b.disabled = !(modelsReady && camReady) || busy); }
 
-// oval guide: everything outside the oval is dimmed, and live tips help the person position their face
-let lastQuality = { ok: false, tip: 'Place your face inside the oval' };
+// the whole camera picture is used: a face anywhere in the frame is found and a box is drawn round it
+let lastQuality = { ok: false, tip: 'Look at the camera' }, lastDet = null;
 const probe = document.createElement('canvas'); probe.width = 160; probe.height = 120;
-// a large face-shaped oval, sized to the part of the video that is actually visible on screen
-function guideShape(w, h) {
+function visibleWidth(w, h) { // part of the video actually on screen (the picture is cropped to fill the box)
   const ew = video.clientWidth || w, eh = video.clientHeight || h;
-  const k = Math.max(ew / w, eh / h), visW = ew / k, visH = eh / k, y0 = (h - visH) / 2;
-  const ry = visH * 0.38, rx = Math.min(ry / 1.30, visW * 0.44);
-  return { cx: w / 2, cy: y0 + visH * 0.49, rx, ry };
+  return ew / Math.max(ew / w, eh / h);
 }
-function ovalDist(box, w, h) { // 0 at the centre of the oval, 1 on its edge
-  const c = guideShape(w, h), fx = box.x + box.width / 2, fy = box.y + box.height / 2;
-  return Math.sqrt(((fx - c.cx) / c.rx) ** 2 + ((fy - c.cy) / c.ry) ** 2);
-}
-function insideCircle(box, w, h) { return ovalDist(box, w, h) <= 0.45; }
+function insideCircle() { return true; } // any face in the picture is accepted
 function lightLevels(box) {
   const g = probe.getContext('2d', { willReadFrequently: true });
   g.drawImage(video, 0, 0, 160, 120);
@@ -641,29 +634,31 @@ function lightLevels(box) {
   return { frame: all / (160 * 120), face: nf ? face / nf : 0 };
 }
 function judge(det) {
-  const w = video.videoWidth, h = video.videoHeight, c = guideShape(w, h);
-  if (!det) return { ok: false, tip: 'Place your face inside the oval' };
-  const b = det.box;
-  if (ovalDist(b, w, h) > 0.45) return { ok: false, tip: 'Move your face to the middle of the oval' };
-  const size = b.width / (2 * c.rx);
-  if (size < 0.55) return { ok: false, tip: 'Come closer so your face fills the oval' };
-  if (size > 1.1) return { ok: false, tip: 'Move back a little' };
+  lastDet = det || null;
+  if (!det) return { ok: false, tip: 'Look at the camera' };
+  const b = det.box, size = b.width / visibleWidth(video.videoWidth, video.videoHeight);
+  if (size < 0.12) return { ok: false, tip: 'Come a little closer' };
+  if (size > 0.9) return { ok: false, tip: 'Move back a little' };
+  // light is only a hint: it never stops the photo
   const L = lightLevels(b);
-  if (L.face < 65) return { ok: false, tip: 'Too dark. Face a window or a light so it shines on your face' };
-  if (L.face > 215) return { ok: false, tip: 'Too bright. Move out of direct sunlight' };
-  if (L.frame - L.face > 40) return { ok: false, tip: 'Light is behind you. Turn round so the light falls on your face' };
-  return { ok: true, tip: 'Good. Hold still' };
+  if (L.face < 45) return { ok: true, tip: 'Face found. More light on your face will help' };
+  if (L.frame - L.face > 60) return { ok: true, tip: 'Face found. Try not to stand with a bright light behind you' };
+  return { ok: true, tip: 'Face found. Hold still' };
 }
 function drawGuide(q) {
-  const ctx = overlay.getContext('2d'), w = overlay.width, h = overlay.height, c = guideShape(w, h);
+  const ctx = overlay.getContext('2d'), w = overlay.width, h = overlay.height;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = 'rgba(11,37,64,.6)'; ctx.fillRect(0, 0, w, h);
-  ctx.globalCompositeOperation = 'destination-out';
-  ctx.beginPath(); ctx.ellipse(c.cx, c.cy, c.rx, c.ry, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.strokeStyle = q.ok ? '#009E73' : '#E69F00'; ctx.lineWidth = Math.max(5, w / 90);
-  ctx.setLineDash(q.ok ? [] : [20, 12]);
-  ctx.beginPath(); ctx.ellipse(c.cx, c.cy, c.rx, c.ry, 0, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+  if (lastDet) { // corner brackets round the face
+    const b = lastDet.box, m = b.width * 0.12, x = b.x - m, y = b.y - m * 1.4, bw = b.width + 2 * m, bh = b.height + m * 2.4, c = Math.min(bw, bh) * 0.22;
+    ctx.strokeStyle = q.ok ? '#009E73' : '#E69F00'; ctx.lineWidth = Math.max(5, w / 100); ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x, y + c); ctx.lineTo(x, y); ctx.lineTo(x + c, y);
+    ctx.moveTo(x + bw - c, y); ctx.lineTo(x + bw, y); ctx.lineTo(x + bw, y + c);
+    ctx.moveTo(x + bw, y + bh - c); ctx.lineTo(x + bw, y + bh); ctx.lineTo(x + bw - c, y + bh);
+    ctx.moveTo(x + c, y + bh); ctx.lineTo(x, y + bh); ctx.lineTo(x, y + bh - c);
+    ctx.save(); ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth += 5; ctx.stroke(); ctx.restore(); // white edge so the box shows on any background
+    ctx.stroke();
+  }
   const tip = $('faceTip'); tip.textContent = q.tip; tip.className = 'facetip ' + (q.ok ? 'good' : 'warn');
 }
 async function trackLoop() {
@@ -684,7 +679,7 @@ async function readFace(samples = 3) {
   const got = []; let box = null, snap = null;
   for (let tries = 0; got.length < samples && tries < samples * 6; tries++) {
     const r = await faceapi.detectSingleFace(video, detOpts()).withFaceLandmarks().withFaceDescriptor();
-    if (r && insideCircle(r.detection.box, video.videoWidth, video.videoHeight)) { got.push(r.descriptor); if (!snap) { box = r.detection.box; snap = cropFace(box); } }
+    if (r) { got.push(r.descriptor); if (!snap) { box = r.detection.box; snap = cropFace(box); } }
     await new Promise(res => setTimeout(res, 120));
   }
   if (!got.length) return null;
@@ -724,11 +719,11 @@ async function identify() {
   if (!matcher.length) { showModal(failBox('No staff registered yet', 'Register staff first in the Register tab.')); return null; }
   setCam('Hold still, reading your face…');
   const f = await readFace(3);
-  if (!f) { setCam('Ready. Look at the camera.'); showModal(failBox('No face found in the oval', lastQuality.ok ? 'Keep your face inside the oval and hold still, then scan again.' : lastQuality.tip + '.')); return null; }
+  if (!f) { setCam('Ready. Look at the camera.'); showModal(failBox('No face found', lastQuality.ok ? 'Look straight at the camera and hold still, then scan again.' : lastQuality.tip + '.')); return null; }
   const m = bestMatch(f.descriptor);
   setCam('Ready. Look at the camera.');
   if (!passes(m)) {
-    showModal(failBox('Face not recognised', 'The match score is below ' + MATCH_SCORE + '%. Check the light and keep your face in the oval, then scan again. If you are not registered, please register or see the administrator.')
+    showModal(failBox('Face not recognised', 'The match score is below ' + MATCH_SCORE + '%. Look straight at the camera with light on your face, then scan again. If you are not registered, please register or see the administrator.')
       .replace('<button', (m ? scoreLine(m.score) : '') + '<button'));
     return null;
   }
@@ -889,7 +884,7 @@ $('btnCapture').onclick = () => {
   if (!camReady || !modelsReady) { toastNotice(camError || modelError || 'The camera or face recognition is still starting. Please wait a moment.', 'bad'); if (!camReady) startCamera(); return; }
   openFull(); autoCapture();
 };
-// waits until the face is inside the oval, well lit and still, then takes the photo by itself
+// waits until a face is found and steady for a moment, then takes the photo by itself
 async function autoCapture() {
   autoStop = false; captured = []; drawShots(); $('cfRetry').classList.add('hidden');
   cfMsg('Look straight at the camera. The photo is taken automatically.');
@@ -904,14 +899,14 @@ async function autoCapture() {
     }
     if (lastQuality.ok) {
       if (!goodSince) { goodSince = Date.now(); cfMsg('Good. Hold still…', 'good'); }
-      if (Date.now() - goodSince < 1200) continue;
+      if (Date.now() - goodSince < 700) continue;
       // steady for a moment: take three quick readings of the straight face
       busy = true; cfMsg('Taking the photo. Hold still…', 'good');
       const got = [];
       for (let k = 0; k < READINGS; k++) { const f = await readFace(2); if (!f) break; got.push(f); await wait(200); }
       busy = false;
       if (autoStop) return;
-      if (got.length < READINGS) { goodSince = 0; cfMsg('Keep still inside the oval…'); continue; }
+      if (got.length < READINGS) { goodSince = 0; cfMsg('Keep looking at the camera…'); continue; }
       const m = bestMatch(got[0].descriptor);
       if (passes(m) && m.staff.staffId !== 'TEL-' + cc.code + nationalNumber()) {
         cfMsg(`This face is already registered as ${m.staff.name}.`, 'bad'); say('This face is already registered.');
